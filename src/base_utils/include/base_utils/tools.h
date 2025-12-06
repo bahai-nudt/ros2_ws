@@ -1,0 +1,16 @@
+
+#ifndef LOCALIZATION_BASE_TOOLS_H 
+#define LOCALIZATION_BASE_TOOLS_H
+
+#include "data_message.h"
+
+
+namespace BaseTools {
+
+Pose interpolatePose(const Pose& pose_before, const Pose& pose_after, double timestamp);
+
+};
+
+
+
+#endif
