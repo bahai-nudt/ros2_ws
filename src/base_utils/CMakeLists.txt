@@ -16,8 +16,6 @@ find_package(PCL REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PROJ REQUIRED proj)
 
-ament_export_include_directories(include)
-
 include_directories(
   ${PCL_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
@@ -31,9 +29,15 @@ add_library(base_utils SHARED
 
 target_link_libraries(base_utils ${PROJ_LIBRARIES} ${PCL_LIBRARIES}
 )
+ament_target_dependencies(base_utils rclcpp std_msgs geometry_msgs)
 
 install(TARGETS base_utils
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  TARGETS base_utils
+  DESTINATION lib
 )
 
 install(
@@ -43,8 +47,6 @@ install(
 
 ament_export_libraries(base_utils)
 ament_export_include_directories(include)
-
-ament_export_dependencies(rclcpp std_msgs geometry_msgs)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

@@ -19,4 +19,14 @@ Pose interpolatePose(const Pose& pose_before, const Pose& pose_after, double tim
     return Pose(timestamp, interp_pos, interp_orient);
 }
 
+Eigen::Matrix3d GetSkewMatrix(const Eigen::Vector3d& v) {
+    Eigen::Matrix3d w;
+    w <<  0.,   -v(2),  v(1),
+          v(2),  0.,   -v(0),
+         -v(1),  v(0),  0.;
+
+    return w;
+}
+
+
 };

@@ -8,6 +8,7 @@
 namespace BaseTools {
 
 Pose interpolatePose(const Pose& pose_before, const Pose& pose_after, double timestamp);
+Eigen::Matrix3d GetSkewMatrix(const Eigen::Vector3d& v);
 
 };
 

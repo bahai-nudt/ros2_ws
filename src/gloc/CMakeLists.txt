@@ -7,9 +7,52 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+
+find_package(Eigen3 REQUIRED)
+find_package(base_utils REQUIRED)
+find_package(PkgConfig REQUIRED)
+find_package(PCL REQUIRED)
+pkg_check_modules(PROJ REQUIRED proj)
+
+
+include_directories(
+  ${EIGEN3_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+  include 
+  ${catkin_INCLUDE_DIRS})
+
+add_executable(gloc src/gloc.cpp
+src/gps_processor
+src/imu_processor)
+target_link_libraries(gloc 
+${PROJ_LIBRARIES} 
+${PCL_LIBRARIES}
+) 
+
+ament_target_dependencies(gloc
+rclcpp 
+std_msgs 
+sensor_msgs 
+base_utils
+)
+
+# Install executable
+install(TARGETS
+  gloc
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install launch files (optional)
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
