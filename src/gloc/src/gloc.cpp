@@ -2,6 +2,7 @@
 #include "sensor_msgs/msg/imu.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "novatel_oem7_msgs/msg/heading2.hpp"
+#include "novatel_oem7_msgs/msg/inspva.hpp"
 
 #include "rclcpp/qos.hpp"
 #include "rclcpp/executors.hpp"
@@ -14,34 +15,58 @@
 
 #include <cmath>
 #include <mutex>
+#include <iomanip>
 
 class GlocNode : public rclcpp::Node
 {
 public:
-
   GlocNode() : Node("gloc_node")
   {
-    std::cout << "构造函数执行" << std::endl;
+    init();
+    thread_ = std::thread([this]() { this->run(); });
+  }
 
-    std::cout << "开始订阅" << std::endl;
+  bool init()
+  {
+    initIO();
+    return true;
+  }
+
+  bool initIO() {
+
     rclcpp::QoS qos(10);
     qos.reliable();
     qos.keep_last(10);
 
-    heading_sub_ = this->create_subscription<novatel_oem7_msgs::msg::HEADING2>(
-      "/bynav/heading2", qos, std::bind(&GlocNode::heading_callback, this, std::placeholders::_1));
+    imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>(
+      "/bynav/imu/data_raw", qos, std::bind(&GlocNode::imu_callback, this, std::placeholders::_1));
 
     gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
       "/gps/fix", 10, std::bind(&GlocNode::gps_callback, this, std::placeholders::_1));
 
-    init();
-    run();    
+    heading_sub_ = this->create_subscription<novatel_oem7_msgs::msg::HEADING2>(
+      "/bynav/heading2", qos, std::bind(&GlocNode::heading_callback, this, std::placeholders::_1));
+
+    return true;
   }
 
+  bool proc()
+  {
+    std::cout << "proc ..." << std::endl;
+    return true;
+  }
+
+  void run()
+  {
+    std::shared_ptr<rclcpp::Rate> rate = std::make_shared<rclcpp::Rate>(10);
+    while (rclcpp::ok()) {
+      rate->sleep();
+      proc();
+    }
+  }  
 
   void imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg)
   {
-    std::cout << "imu callback" << std::endl;
     ImuData imu_data;
     
     imu_data._timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
@@ -60,7 +85,6 @@ public:
 
   void gps_callback(const sensor_msgs::msg::NavSatFix::SharedPtr msg)
   {
-    std::cout << "gps callback" << std::endl;
     GpsData gps_data;
     gps_data._timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
     gps_data._lla << msg->longitude, msg->latitude, msg->altitude;
@@ -82,8 +106,6 @@ public:
   }
 
   void heading_callback(const novatel_oem7_msgs::msg::HEADING2::SharedPtr msg) {
-
-    std::cout << "heading callback" << std::endl;
     Heading heading;
     heading._timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
     heading._heading = msg->heading / 180.0 * M_PI;
@@ -91,49 +113,20 @@ public:
     SingletonDataBuffer::getInstance()._heading_buffer.push(heading);
   }
 
-  bool init()
+
+  ~GlocNode()
   {
-      // initIO();
-      return true;
+      // 等待线程结束
+      if (thread_.joinable()) {
+          thread_.join();
+      }
   }
-
-  bool initIO() {
-
-
-    std::cout << "开始订阅" << std::endl;
-    rclcpp::QoS qos(10);
-    qos.reliable();
-    qos.keep_last(10);
-
-    // imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>(
-    //   "/bynav/imu/data_raw", qos, std::bind(&GlocNode::imu_callback, this, std::placeholders::_1));
-
-    gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
-      "/gps/fix", 10, std::bind(&GlocNode::gps_callback, this, std::placeholders::_1));
-
-    // heading_sub_ = this->create_subscription<novatel_oem7_msgs::msg::HEADING2>(
-    //   "/bynav/heading2", qos, std::bind(&GlocNode::heading_callback, this, std::placeholders::_1));
-
-      return true;
-  }
-
-  bool proc()
-  {
-    return true;
-  }
-
-  void run()
-  {
-    std::shared_ptr<rclcpp::Rate> rate = std::make_shared<rclcpp::Rate>(10);
-    while (rclcpp::ok()) {
-      rate->sleep();
-      proc();
-    }
-  }
+  std::thread thread_;
 
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_;
   rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr gps_sub_;
   rclcpp::Subscription<novatel_oem7_msgs::msg::HEADING2>::SharedPtr heading_sub_;
+  rclcpp::Subscription<novatel_oem7_msgs::msg::INSPVA>::SharedPtr ins_scription_;
 
   Initializer _initializer;
   ImuProcessor _imu_processor;
@@ -148,12 +141,6 @@ public:
 
 int main(int argc, char * argv[])
 {
-
-    // rclcpp::init(argc, argv);
-    // rclcpp::spin(std::make_shared<GlocNode>());
-    // rclcpp::shutdown();
-    // return 0;
-
     rclcpp::init(argc, argv);
     rclcpp::executors::MultiThreadedExecutor executor;
     auto node = std::make_shared<GlocNode>();

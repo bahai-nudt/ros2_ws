@@ -29,18 +29,18 @@ include_directories(
   include 
   ${catkin_INCLUDE_DIRS})
 
-add_executable(gloc src/gloc.cpp
+add_executable(gloc_node src/gloc.cpp
 src/gps_processor.cpp
 src/imu_processor.cpp
 src/initializer.cpp
 )
 
-target_link_libraries(gloc 
+target_link_libraries(gloc_node 
 ${PROJ_LIBRARIES} 
 ${PCL_LIBRARIES}
 ) 
 
-ament_target_dependencies(gloc
+ament_target_dependencies(gloc_node
 rclcpp 
 std_msgs 
 sensor_msgs 
@@ -50,7 +50,7 @@ novatel_oem7_msgs
 
 # Install executable
 install(TARGETS
-  gloc
+  gloc_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
