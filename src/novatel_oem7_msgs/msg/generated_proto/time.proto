@@ -1,0 +1,19 @@
+syntax = "proto2";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+
+message TIME {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional uint32 clock_status = 3;
+  optional double offset = 4;
+  optional double offset_std = 5;
+  optional double utc_offset = 6;
+  optional uint32 utc_year = 7;
+  optional uint32 utc_month = 8;
+  optional uint32 utc_day = 9;
+  optional uint32 utc_hour = 10;
+  optional uint32 utc_min = 11;
+  optional uint32 utc_msec = 12;
+  optional uint32 utc_status = 13;
+}

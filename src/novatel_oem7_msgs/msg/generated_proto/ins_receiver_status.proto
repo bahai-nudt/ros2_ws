@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+enum INSReceiverStatus_Constants {
+  option allow_alias = true;
+  INS_RESET_BYTE = 0;
+  BYTE_1 = 1;
+  IMU_COMMUNICATION_ERROR = 1;
+}
+
+message INSReceiverStatus {
+  repeated uint32 status = 1;
+}

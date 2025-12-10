@@ -7,7 +7,7 @@ GpsProcessor::GpsProcessor() {
 GpsProcessor::GpsProcessor(const Eigen::Vector3d& pos) {
     ;
 }
-void GpsProcessor::update(const Eigen::Vector3d& init_lla, GpsData gps_data, State& state) {
+void GpsProcessor::update(GpsData gps_data, State& state) {
     ;
 }
 

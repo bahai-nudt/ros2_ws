@@ -1,0 +1,30 @@
+syntax = "proto2";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+
+message RXSTATUS {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional uint32 error = 3;
+  optional uint32 num_status_codes = 4;
+  optional uint32 rxstat = 5;
+  optional uint32 rxstat_pri_mask = 6;
+  optional uint32 rxstat_set_mask = 7;
+  optional uint32 rxstat_clr_mask = 8;
+  optional uint32 aux1_stat = 9;
+  optional uint32 aux1_stat_pri = 10;
+  optional uint32 aux1_stat_set = 11;
+  optional uint32 aux1_stat_clr = 12;
+  optional uint32 aux2_stat = 13;
+  optional uint32 aux2_stat_pri = 14;
+  optional uint32 aux2_stat_set = 15;
+  optional uint32 aux2_stat_clr = 16;
+  optional uint32 aux3_stat = 17;
+  optional uint32 aux3_stat_pri = 18;
+  optional uint32 aux3_stat_set = 19;
+  optional uint32 aux3_stat_clr = 20;
+  optional uint32 aux4_stat = 21;
+  optional uint32 aux4_stat_pri = 22;
+  optional uint32 aux4_stat_set = 23;
+  optional uint32 aux4_stat_clr = 24;
+}

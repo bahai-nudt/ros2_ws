@@ -14,6 +14,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(novatel_oem7_msgs REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 find_package(base_utils REQUIRED)
@@ -29,8 +30,11 @@ include_directories(
   ${catkin_INCLUDE_DIRS})
 
 add_executable(gloc src/gloc.cpp
-src/gps_processor
-src/imu_processor)
+src/gps_processor.cpp
+src/imu_processor.cpp
+src/initializer.cpp
+)
+
 target_link_libraries(gloc 
 ${PROJ_LIBRARIES} 
 ${PCL_LIBRARIES}
@@ -41,6 +45,7 @@ rclcpp
 std_msgs 
 sensor_msgs 
 base_utils
+novatel_oem7_msgs
 )
 
 # Install executable

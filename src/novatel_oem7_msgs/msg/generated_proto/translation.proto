@@ -1,0 +1,16 @@
+syntax = "proto2";
+import "ins_frame.proto";
+import "ins_source_status.proto";
+import "translation_offset.proto";
+
+message Translation {
+  optional TranslationOffset translation = 1;
+  optional INSFrame frame = 2;
+  optional float x_offset = 3;
+  optional float y_offset = 4;
+  optional float z_offset = 5;
+  optional float x_uncertainty = 6;
+  optional float y_uncertainty = 7;
+  optional float z_uncertainty = 8;
+  optional INSSourceStatus translation_source = 9;
+}

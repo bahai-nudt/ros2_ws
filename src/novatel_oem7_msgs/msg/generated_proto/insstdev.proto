@@ -1,0 +1,23 @@
+syntax = "proto2";
+import "ins_extended_solution_status.proto";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+
+message INSSTDEV {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional float latitude_stdev = 3;
+  optional float longitude_stdev = 4;
+  optional float height_stdev = 5;
+  optional float north_velocity_stdev = 6;
+  optional float east_velocity_stdev = 7;
+  optional float up_velocity_stdev = 8;
+  optional float roll_stdev = 9;
+  optional float pitch_stdev = 10;
+  optional float azimuth_stdev = 11;
+  optional INSExtendedSolutionStatus ext_sol_status = 12;
+  optional uint32 time_since_last_update = 13;
+  optional uint32 reserved1 = 14;
+  optional uint32 reserved2 = 15;
+  optional uint32 reserved3 = 16;
+}

@@ -1,0 +1,7 @@
+syntax = "proto2";
+
+message Point64 {
+  optional double x = 1;
+  optional double y = 2;
+  optional double z = 3;
+}

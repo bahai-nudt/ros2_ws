@@ -1,0 +1,16 @@
+syntax = "proto2";
+
+enum SubscriptionPermission_Constants {
+  RESERVED_1 = 511;                // 0x000001FF
+  TERRASTAR_C_SERVICE = 512;       // 0x00000200
+  TERRASTAR_L_SERVICE = 1024;      // 0x00000400
+  RTK_ASSIST_SERVICE = 2048;       // 0x00000800
+  RTK_ASSIST_PRO_SERVICE = 4096;   // 0x00001000
+  TERRASTAR_C_PRO_SERVICE = 8192;  // 0x00002000
+  TERRASTAR_X_SERVICE = 16384;     // 0x00004000
+  RESERVED_2 = 2147450880;         // 0x7FFF8000
+}
+
+message SubscriptionPermission {
+  optional uint32 permission = 1;
+}

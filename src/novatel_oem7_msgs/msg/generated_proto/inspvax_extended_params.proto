@@ -1,0 +1,10 @@
+syntax = "proto2";
+
+message INSPVAXExtendedParams {
+  optional float body_north_vel = 1;
+  optional float body_east_vel = 2;
+  optional float body_up_vel = 3;
+  optional float body_north_vel_vari = 4;
+  optional float body_east_vel_vari = 5;
+  optional float body_up_vel_vari = 6;
+}

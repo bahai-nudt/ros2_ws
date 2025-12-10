@@ -1,0 +1,20 @@
+syntax = "proto2";
+
+enum BestExtendedSolutionStatus_Constants {
+  option allow_alias = true;
+  RTK_SOLUTION_VERIFIED = 1;
+  PDP_SOLUTION_IS_GLIDE = 1;
+  KLOBUCHAR_BROADCAST = 2;                                   // 0x2
+  SBAS_BROADCAST = 4;                                        // 0x4
+  MULTI_FREQUENCY_COMPUTED = 6;                              // 0x6
+  PSRDIFF_CORRECTION = 8;                                    // 0x8
+  NOVATEL_BLENDED_IONO_VALUE = 10;                           //0xA
+  RTK_ASSIST_ACTIVE = 16;                                    // 0x10
+  ANTENNA_INFORMATION_IS_MISSING = 32;                       // 0x20
+  RESERVED = 64;                                             // 0x40
+  POSITION_INCLUDES_TERRAIN_COMPENSATION_CORRECTIONS = 128;  // 0x80
+}
+
+message BestExtendedSolutionStatus {
+  optional uint32 status = 1;
+}

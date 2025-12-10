@@ -1,0 +1,21 @@
+syntax = "proto2";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+import "region_restriction.proto";
+import "subscription_permission.proto";
+import "subscription_type.proto";
+
+message TERRASTARINFO {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional string product_activation_code = 3;
+  optional SubscriptionType sub_type = 4;
+  optional SubscriptionPermission sub_permission = 5;
+  optional uint32 service_end_day_of_year = 6;
+  optional uint32 service_end_year = 7;
+  optional uint32 reserved = 8;
+  optional RegionRestriction region_restriction = 9;
+  optional float center_point_latitude = 10;
+  optional float center_point_longitude = 11;
+  optional uint32 radius = 12;
+}

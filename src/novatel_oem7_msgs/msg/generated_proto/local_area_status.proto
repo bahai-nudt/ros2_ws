@@ -1,0 +1,14 @@
+syntax = "proto2";
+
+enum LocalAreaStatus_Constants {
+  DISABLED = 0;
+  WAITING_FOR_POSITION = 1;
+  RANGE_CHECK = 16;
+  IN_RANGE = 129;
+  OUT_OF_RANGE = 130;
+  POSITION_TOO_OLD = 255;
+}
+
+message LocalAreaStatus {
+  optional uint32 status = 1;
+}

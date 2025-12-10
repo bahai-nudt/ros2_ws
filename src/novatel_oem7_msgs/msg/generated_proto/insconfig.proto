@@ -1,0 +1,32 @@
+syntax = "proto2";
+import "ins_alignment_mode.proto";
+import "ins_output_frame.proto";
+import "ins_receiver_status.proto";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+
+message INSCONFIG {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional uint32 imu_type = 3;
+  optional uint32 mapping = 4;
+  optional uint32 initial_alignment_velocity = 5;
+  optional uint32 heave_window = 6;
+  optional uint32 profile = 7;
+  repeated uint32 enabled_updates = 8;
+  optional INSAlignmentMode alignment_mode = 9;
+  optional INSOutputFrame relative_ins_output_frame = 10;
+  optional bool relative_ins_output_direction = 11;
+  optional INSReceiverStatus ins_receiver_status = 12;
+  optional uint32 ins_seed_enabled = 13;
+  optional uint32 ins_seed_validation = 14;
+  optional uint32 reserved_1 = 15;
+  optional uint32 reserved_2 = 16;
+  optional uint32 reserved_3 = 17;
+  optional uint32 reserved_4 = 18;
+  optional uint32 reserved_5 = 19;
+  optional uint32 reserved_6 = 20;
+  optional uint32 reserved_7 = 21;
+  optional uint32 number_of_translations = 22;
+  optional uint32 number_of_rotations = 23;
+}

@@ -1,0 +1,19 @@
+syntax = "proto2";
+import "inertial_solution_status.proto";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+
+message INSPVA {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional double latitude = 3;
+  optional double longitude = 4;
+  optional double height = 5;
+  optional double north_velocity = 6;
+  optional double east_velocity = 7;
+  optional double up_velocity = 8;
+  optional double roll = 9;
+  optional double pitch = 10;
+  optional double azimuth = 11;
+  optional InertialSolutionStatus status = 12;
+}

@@ -1,0 +1,6 @@
+syntax = "proto2";
+
+message TaskInfo {
+  optional double timestamp = 1;
+  optional int32 task_code = 2;
+}

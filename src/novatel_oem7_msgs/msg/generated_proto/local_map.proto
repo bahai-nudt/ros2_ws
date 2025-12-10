@@ -1,0 +1,6 @@
+syntax = "proto2";
+import "points64.proto";
+
+message LocalMap {
+  optional Points64 reference_line = 1;
+}

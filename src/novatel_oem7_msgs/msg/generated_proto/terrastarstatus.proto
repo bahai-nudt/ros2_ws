@@ -1,0 +1,17 @@
+syntax = "proto2";
+import "access_status.proto";
+import "geogating_status.proto";
+import "local_area_status.proto";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+import "sync_state.proto";
+
+message TERRASTARSTATUS {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional AccessStatus access_status = 3;
+  optional SyncState sync_state = 4;
+  optional uint32 reserved = 5;
+  optional LocalAreaStatus local_area_status = 6;
+  optional GeogatingStatus geo_status = 7;
+}

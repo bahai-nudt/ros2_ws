@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+enum INSOutputFrame_Constants {
+  ROVER = 1;
+  MASTER = 2;
+  ECEF = 3;
+  LOCALEVEL = 4;
+}
+
+message INSOutputFrame {
+  optional uint32 frame = 1;
+}

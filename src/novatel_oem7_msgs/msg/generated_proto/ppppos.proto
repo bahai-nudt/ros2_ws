@@ -1,0 +1,32 @@
+syntax = "proto2";
+import "best_extended_solution_status.proto";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+import "position_or_velocity_type.proto";
+import "solution_status.proto";
+
+message PPPPOS {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional SolutionStatus sol_status = 3;
+  optional PositionOrVelocityType pos_type = 4;
+  optional double lat = 5;
+  optional double lon = 6;
+  optional double hgt = 7;
+  optional float undulation = 8;
+  optional uint32 datum_id = 9;
+  optional float lat_stdev = 10;
+  optional float lon_stdev = 11;
+  optional float hgt_stdev = 12;
+  optional string stn_id = 13;
+  optional float diff_age = 14;
+  optional float sol_age = 15;
+  optional uint32 num_svs = 16;
+  optional uint32 num_sol_svs = 17;
+  optional uint32 num_sol_l1_svs = 18;
+  optional uint32 num_sol_multi_svs = 19;
+  optional uint32 reserved = 20;
+  optional BestExtendedSolutionStatus ext_sol_stat = 21;
+  optional uint32 reserved2 = 22;
+  optional uint32 gps_glonass_sig_mask = 23;
+}

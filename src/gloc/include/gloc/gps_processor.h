@@ -9,7 +9,7 @@ class GpsProcessor {
 public:
     GpsProcessor();
     GpsProcessor(const Eigen::Vector3d& pos);
-    void update(const Eigen::Vector3d& init_lla, GpsData gps_data, State& state);
+    void update(GpsData gps_data, State& state);
 
 
     void compute_jacobian_residual(

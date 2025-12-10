@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+enum InertialSolutionStatus_Constants {
+  INS_INACTIVE = 0;
+  INS_ALIGNING = 1;
+  INS_HIGH_VARIANCE = 2;
+  INS_SOLUTION_GOOD = 3;
+  INS_SOLUTION_FREE = 6;
+  INS_ALIGNMENT_COMPLETE = 7;
+  DETERMINING_ORIENTATION = 8;
+  WAITING_INITIAL_POS = 9;
+  WAITING_AZIMUTH = 10;
+  INITIALIZING_BIASES = 11;
+  MOTION_DETECT = 12;
+}
+
+message InertialSolutionStatus {
+  optional uint32 status = 1;
+}

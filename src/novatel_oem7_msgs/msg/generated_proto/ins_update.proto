@@ -1,0 +1,5 @@
+syntax = "proto2";
+
+message INSUpdate {
+  repeated uint32 update = 1;
+}

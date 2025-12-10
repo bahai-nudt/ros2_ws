@@ -1,0 +1,30 @@
+syntax = "proto2";
+import "best_extended_solution_status.proto";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+import "position_or_velocity_type.proto";
+import "solution_source.proto";
+import "solution_status.proto";
+
+message HEADING2 {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional SolutionStatus sol_status = 3;
+  optional PositionOrVelocityType pos_type = 4;
+  optional float length = 5;
+  optional float heading = 6;
+  optional float pitch = 7;
+  optional float reserved = 8;
+  optional float heading_stdev = 9;
+  optional float pitch_stdev = 10;
+  repeated int32 rover_stn_id = 11;
+  repeated int32 master_stn_id = 12;
+  optional uint32 num_sv_tracked = 13;
+  optional uint32 num_sv_in_sol = 14;
+  optional uint32 num_sv_obs = 15;
+  optional uint32 num_sv_multi = 16;
+  optional SolutionSource sol_source = 17;
+  optional BestExtendedSolutionStatus ext_sol_status = 18;
+  optional uint32 galileo_beidou_sig_mask = 19;
+  optional uint32 gps_glonass_sig_mask = 20;
+}

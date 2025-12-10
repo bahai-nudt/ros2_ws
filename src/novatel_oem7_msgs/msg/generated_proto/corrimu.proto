@@ -1,0 +1,17 @@
+syntax = "proto2";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+
+message CORRIMU {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional uint32 imu_data_count = 3;
+  optional double pitch_rate = 4;
+  optional double roll_rate = 5;
+  optional double yaw_rate = 6;
+  optional double lateral_acc = 7;
+  optional double longitudinal_acc = 8;
+  optional double vertical_acc = 9;
+  optional uint32 reserved1 = 10;
+  optional uint32 reserved2 = 11;
+}

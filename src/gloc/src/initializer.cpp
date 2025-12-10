@@ -1,0 +1,42 @@
+    #include "gloc/initializer.h"
+    #include "gloc/message.h"
+    #include "gloc/gloc_data_buffer.h"
+
+    bool Initializer::init_by_gps(const GpsData& gps_data, State& state) {
+        // 初始化方向
+
+        std::cout << "initial by gps" << std::endl;
+
+        RCLCPP_WARN(logger, "imubuffer size, %d", 
+            SingletonDataBuffer::getInstance()._imu_buffer.cache.size());
+
+        RCLCPP_WARN(logger, "heading buffer size, %d", 
+            SingletonDataBuffer::getInstance()._heading_buffer.cache.size());
+
+        if (SingletonDataBuffer::getInstance()._imu_buffer.cache.size() < 80 || SingletonDataBuffer::getInstance()._heading_buffer.cache.size() < 8) {
+            return false;
+        }
+
+        Heading heading = SingletonDataBuffer::getInstance()._heading_buffer.cache.back();
+
+        if (fabs(heading._timestamp - gps_data._timestamp) > 1.0) {
+            RCLCPP_WARN(logger, "heading timestamp is far away from gos timestamp:%d : %d", heading._timestamp, gps_data._timestamp);
+            return false;
+        }
+
+        // 北云设备， heading与azimuth定义一样，正北为0,顺时针为正
+        Eigen::AngleAxisd rotation_vector(heading._heading , Eigen::Vector3d(0, 0, 1));
+
+        state._timestamp = gps_data._timestamp;
+        state._position = gps_data._position;
+        state._velocity = Eigen::Vector3d(0, 0, 0);
+        state._orientation = rotation_vector.toRotationMatrix();
+        state._bias_accel = Eigen::Vector3d(0, 0, 0);
+        state._bias_gyro = Eigen::Vector3d(0, 0, 0);
+
+        state._cov = Eigen::Matrix<double, 15, 15>::Zero();
+
+
+        std::exit(-1);
+        return true;
+    }

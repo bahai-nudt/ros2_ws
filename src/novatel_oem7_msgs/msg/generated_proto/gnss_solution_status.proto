@@ -1,0 +1,23 @@
+syntax = "proto2";
+
+enum GNSSSolutionStatus_Constants {
+  SOL_COMPUTED = 0;
+  INSUFFICIENT_OBS = 1;
+  NO_CONVERGENCE = 2;
+  SINGULARITY = 3;
+  COV_TRACE = 4;
+  TEST_DIST = 5;
+  COLD_START = 6;
+  V_H_LIMIT = 7;
+  VARIANCE = 8;
+  RESIDUALS = 9;
+  INTEGRITY_WARNING = 13;
+  PENDING = 18;
+  INVALID_FIX = 19;
+  UNAUTHORIZED = 20;
+  INVALID_RATE = 22;
+}
+
+message GNSSSolutionStatus {
+  optional uint32 status = 1;
+}

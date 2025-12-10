@@ -1,0 +1,16 @@
+syntax = "proto2";
+import "ins_frame.proto";
+import "ins_source_status.proto";
+import "rotational_offset.proto";
+
+message Rotation {
+  optional RotationalOffset rotation = 1;
+  optional INSFrame frame = 2;
+  optional float x_rotation = 3;
+  optional float y_rotation = 4;
+  optional float z_rotation = 5;
+  optional float x_rotation_stdev = 6;
+  optional float y_rotation_stdev = 7;
+  optional float z_rotation_stdev = 8;
+  optional INSSourceStatus rotation_source = 9;
+}

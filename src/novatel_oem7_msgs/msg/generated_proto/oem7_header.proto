@@ -1,0 +1,17 @@
+syntax = "proto2";
+
+enum Oem7Header_Constants {
+  OEM7MSGTYPE_LOG = 0;
+}
+
+message Oem7Header {
+  optional string message_name = 1;
+  optional uint32 message_id = 2;
+  optional uint32 message_type = 3;
+  optional uint32 sequence_number = 4;
+  optional uint32 time_status = 5;
+  optional uint32 gps_week_number = 6;
+  optional uint32 gps_week_milliseconds = 7;
+  optional uint32 receiver_status = 8;
+  optional float idle_time = 9;
+}

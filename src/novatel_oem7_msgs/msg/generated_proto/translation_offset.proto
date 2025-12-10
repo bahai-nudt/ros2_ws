@@ -1,0 +1,17 @@
+syntax = "proto2";
+
+enum TranslationOffset_Constants {
+  ANT1 = 1;
+  ANT2 = 2;
+  EXTERNAL = 3;
+  USER = 4;
+  MARK1 = 5;
+  MARK2 = 6;
+  GIMBAL = 7;
+  MARK3 = 9;
+  MARK4 = 10;
+}
+
+message TranslationOffset {
+  optional uint32 type = 1;
+}

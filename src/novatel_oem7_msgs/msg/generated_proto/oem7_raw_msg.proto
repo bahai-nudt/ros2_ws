@@ -1,0 +1,6 @@
+syntax = "proto2";
+import "modules/msgs/basic_msgs/header.proto";
+
+message Oem7RawMsg {
+  optional apollo.common.Header header = 1;
+}

@@ -1,0 +1,42 @@
+syntax = "proto2";
+
+enum PositionOrVelocityType_Constants {
+  NONE = 0;
+  FIXEDPOS = 1;
+  FIXEDHEIGHT = 2;
+  FLOATCONV = 4;
+  WIDELANE = 5;
+  NARROWLANE = 6;
+  DOPPLER_VELOCITY = 8;
+  SINGLE = 16;
+  PSRDIFF = 17;
+  WAAS = 18;
+  PROPAGATED = 19;
+  L1_FLOAT = 32;
+  IONOFREE_FLOAT = 33;
+  NARROW_FLOAT = 34;
+  L1_INT = 48;
+  WIDE_INT = 49;
+  NARROW_INT = 50;
+  RTK_DIRECT_INS = 51;
+  INS_SBAS = 52;
+  INS_PSRSP = 53;
+  INS_PSRDIFF = 54;
+  INS_RTKFLOAT = 55;
+  INS_RTKFIXED = 56;
+  PPP_CONVERGING = 68;
+  PPP = 69;
+  OPERATIONAL = 70;
+  WARNING = 71;
+  OUT_OF_BOUNDS = 72;
+  INS_PPP_CONVERGING = 73;
+  INS_PPP = 74;
+  PPP_BASIC_CONVERGING = 77;
+  PPP_BASIC = 78;
+  INS_PPP_BASIC_CONVERGING = 79;
+  INS_PPP_BASIC = 80;
+}
+
+message PositionOrVelocityType {
+  optional uint32 type = 1;
+}

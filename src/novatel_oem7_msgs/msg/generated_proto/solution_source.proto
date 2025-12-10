@@ -1,0 +1,14 @@
+syntax = "proto2";
+
+enum SolutionSource_Constants {
+  option allow_alias = true;
+  RESERVED1 = 3;             // 0x3
+  SOURCE_ANTENNA_MASK = 12;  // 0xC
+  PRIMARY_ANTENNA = 0;
+  SECONDARY_ANTENNA = 0;
+  RESERVED2 = 240;           // 0xF0
+}
+
+message SolutionSource {
+  optional uint32 source = 1;
+}

@@ -1,0 +1,36 @@
+syntax = "proto2";
+import "inertial_solution_status.proto";
+import "ins_extended_solution_status.proto";
+import "inspvax_extended_params.proto";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+import "position_or_velocity_type.proto";
+
+message INSPVAX {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional InertialSolutionStatus ins_status = 3;
+  optional PositionOrVelocityType pos_type = 4;
+  optional double latitude = 5;
+  optional double longitude = 6;
+  optional double height = 7;
+  optional float undulation = 8;
+  optional double north_velocity = 9;
+  optional double east_velocity = 10;
+  optional double up_velocity = 11;
+  optional double roll = 12;
+  optional double pitch = 13;
+  optional double azimuth = 14;
+  optional float latitude_stdev = 15;
+  optional float longitude_stdev = 16;
+  optional float height_stdev = 17;
+  optional float north_velocity_stdev = 18;
+  optional float east_velocity_stdev = 19;
+  optional float up_velocity_stdev = 20;
+  optional float roll_stdev = 21;
+  optional float pitch_stdev = 22;
+  optional float azimuth_stdev = 23;
+  optional INSExtendedSolutionStatus ext_sol_status = 24;
+  optional uint32 time_since_update = 25;
+  optional INSPVAXExtendedParams extended_params = 26;
+}

@@ -1,0 +1,17 @@
+syntax = "proto2";
+
+enum INSSourceStatus_Constants {
+  FROM_NVM = 1;
+  CALIBRATING = 2;
+  CALIBRATED = 3;
+  FROM_COMMAND = 4;
+  RESET = 5;
+  FROM_DUAL_ANT = 6;
+  INS_CONVERSING = 7;
+  INSUFFICIENT_SPEED = 8;
+  HIGH_ROTATION = 9;
+}
+
+message INSSourceStatus {
+  optional uint32 status = 1;
+}

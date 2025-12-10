@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+enum SubscriptionType_Constants {
+  UNASSIGNED = 0;
+  TERM = 1;
+  MODEL = 5;
+  BUBBLE = 100;
+  INCOMPATIBLE_SUBSCRIPTION = 104;
+}
+
+message SubscriptionType {
+  optional uint32 type = 1;
+}

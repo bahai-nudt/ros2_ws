@@ -1,0 +1,18 @@
+syntax = "proto2";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+import "position_or_velocity_type.proto";
+import "solution_status.proto";
+
+message BESTVEL {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional SolutionStatus sol_status = 3;
+  optional PositionOrVelocityType vel_type = 4;
+  optional float latency = 5;
+  optional float diff_age = 6;
+  optional double hor_speed = 7;
+  optional double trk_gnd = 8;
+  optional double ver_speed = 9;
+  optional float reserved = 10;
+}

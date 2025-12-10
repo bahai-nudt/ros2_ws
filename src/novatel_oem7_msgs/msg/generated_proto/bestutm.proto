@@ -1,0 +1,34 @@
+syntax = "proto2";
+import "best_extended_solution_status.proto";
+import "modules/msgs/basic_msgs/header.proto";
+import "oem7_header.proto";
+import "position_or_velocity_type.proto";
+import "solution_status.proto";
+
+message BESTUTM {
+  optional apollo.common.Header header = 1;
+  optional Oem7Header nov_header = 2;
+  optional SolutionStatus sol_status = 3;
+  optional PositionOrVelocityType pos_type = 4;
+  optional uint32 lon_zone_number = 5;
+  optional uint32 lat_zone_letter = 6;
+  optional double northing = 7;
+  optional double easting = 8;
+  optional double height = 9;
+  optional float undulation = 10;
+  optional uint32 datum_id = 11;
+  optional float northing_stddev = 12;
+  optional float easting_stddev = 13;
+  optional float height_stddev = 14;
+  repeated int32 stn_id = 15;
+  optional float diff_age = 16;
+  optional float sol_age = 17;
+  optional uint32 num_svs = 18;
+  optional uint32 num_sol_svs = 19;
+  optional uint32 num_sol_ggl1_svs = 20;
+  optional uint32 num_sol_multi_svs = 21;
+  optional uint32 reserved = 22;
+  optional BestExtendedSolutionStatus ext_sol_stat = 23;
+  optional uint32 galileo_beidou_sig_mask = 24;
+  optional uint32 gps_glonass_sig_mask = 25;
+}

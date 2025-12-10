@@ -1,0 +1,10 @@
+syntax = "proto2";
+
+enum AccessStatus_Constants {
+  DISABLE = 0;
+  ENABLE = 1;
+}
+
+message AccessStatus {
+  optional uint32 status = 1;
+}

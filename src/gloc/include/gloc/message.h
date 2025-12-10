@@ -13,8 +13,18 @@ struct ImuData {
 struct GpsData {
     double _timestamp;
 
+    Eigen::Vector3d _lla;
     Eigen::Vector3d _position;
     Eigen::Vector3d _velocity;
+
+    Eigen::Matrix3d _cov;
+    int _status;
+};
+
+struct Heading {
+    double _timestamp;
+
+    double _heading; // rad
 };
 
 struct State {

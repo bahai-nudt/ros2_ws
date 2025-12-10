@@ -1,0 +1,16 @@
+syntax = "proto2";
+
+enum RotationalOffset_Constants {
+  USER = 4;
+  MARK1 = 5;
+  MARK2 = 6;
+  ALIGN = 8;
+  MARK3 = 9;
+  MARK4 = 10;
+  RBV = 11;
+  RBM = 12;
+}
+
+message RotationalOffset {
+  optional uint32 offset = 1;
+}

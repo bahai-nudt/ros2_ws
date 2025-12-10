@@ -1,0 +1,14 @@
+syntax = "proto2";
+
+enum GeogatingStatus_Constants {
+  DISABLED = 0;
+  WAITING_FOR_POSITION = 1;
+  ONSHORE = 129;
+  OFFSHORE = 130;
+  POSITION_TOO_OLD = 255;
+  PROCESSING = 1000;
+}
+
+message GeogatingStatus {
+  optional uint32 status = 1;
+}

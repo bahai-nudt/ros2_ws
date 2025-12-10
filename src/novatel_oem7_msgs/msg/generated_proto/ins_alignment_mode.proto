@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+enum INSAlignmentMode_Constants {
+  UNAIDED = 0;
+  AIDED_TRANSFER = 2;
+  AUTOMATIC = 3;
+  STATIC = 4;
+  KINEMATIC = 5;
+}
+
+message INSAlignmentMode {
+  optional uint32 mode = 1;
+}

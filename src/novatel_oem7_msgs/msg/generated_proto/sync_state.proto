@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+enum SyncState_Constants {
+  NO_SIGNAL = 0;
+  SEARCH = 1;
+  LOCKED = 2;
+}
+
+message SyncState {
+  optional uint32 state = 1;
+}

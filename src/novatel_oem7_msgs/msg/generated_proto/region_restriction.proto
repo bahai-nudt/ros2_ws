@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+enum RegionRestriction_Constants {
+  NONE = 0;
+  GEOGATED = 1;
+  LOCAL_AREA = 2;
+  NEARSHORE = 3;
+}
+
+message RegionRestriction {
+  optional uint32 restriction = 1;
+}
