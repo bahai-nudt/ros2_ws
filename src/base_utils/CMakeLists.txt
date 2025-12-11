@@ -45,6 +45,33 @@ install(
   DESTINATION include
 )
 
+add_executable(test_demo
+  src/test.cpp
+  src/tools.cpp
+)
+
+target_link_directories(test_demo PRIVATE /usr/lib/x86_64-linux-gnu)
+target_link_libraries(test_demo ${PROJ_LIBRARIES} ${PCL_LIBRARIES} GeographicLib
+)
+ament_target_dependencies(test_demo rclcpp std_msgs geometry_msgs)
+
+install(TARGETS test_demo
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  TARGETS test_demo
+  DESTINATION lib
+)
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+
+
+
 ament_export_libraries(base_utils)
 ament_export_include_directories(include)
 

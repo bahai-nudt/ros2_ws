@@ -44,6 +44,7 @@ ament_target_dependencies(gloc_node
 rclcpp 
 std_msgs 
 sensor_msgs 
+nav_msgs
 base_utils
 novatel_oem7_msgs
 )

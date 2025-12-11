@@ -26,7 +26,7 @@
         state._timestamp = gps_data._timestamp;
         state._position = gps_data._position;
         state._velocity = Eigen::Vector3d(0, 0, 0);
-        state._orientation = rotation_vector.toRotationMatrix();
+        state._rotation = rotation_vector.toRotationMatrix();
         state._bias_accel = Eigen::Vector3d(0, 0, 0);
         state._bias_gyro = Eigen::Vector3d(0, 0, 0);
 

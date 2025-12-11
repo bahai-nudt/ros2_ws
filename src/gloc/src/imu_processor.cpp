@@ -2,7 +2,13 @@
 #include "base_utils/tools.h"
 
 ImuProcessor::ImuProcessor() {
-    ;
+    _acc_noise = 0.01;
+    _gyro_noise = 0.001;
+    _acc_bias_noise = 0.01;
+    _gyro_bias_noise = 0.001;
+
+    _gravity << 0, 0, -9.8;
+
 }
 
 ImuProcessor::ImuProcessor(
@@ -16,7 +22,7 @@ ImuProcessor::ImuProcessor(
 void ImuProcessor::predict(const ImuData& cur_imu, State& state) {
     
     const double delta_t = cur_imu._timestamp - state._timestamp;
-    if (delta_t < 1e-12) { // 小于1ms
+    if (delta_t < 1e-3) { // 小于1ms
         // TODO add log
         return;
     }
@@ -27,22 +33,20 @@ void ImuProcessor::predict(const ImuData& cur_imu, State& state) {
     State last_state = state;
 
     state._position = last_state._position + last_state._velocity * delta_t +
-                   0.5 * (last_state._orientation * cur_imu._accel + _gravity) * delta_t2;
-    state._velocity = last_state._velocity + (last_state._orientation * cur_imu._accel + _gravity) * delta_t;
-
-
+                   0.5 * (last_state._rotation * cur_imu._accel + _gravity) * delta_t2;
+    state._velocity = last_state._velocity + (last_state._rotation * cur_imu._accel + _gravity) * delta_t;
 
     const Eigen::Vector3d delta_angle_axis = cur_imu._gyro * delta_t;
     if (delta_angle_axis.norm() > 1e-12) {
-        state._orientation = last_state._orientation * Eigen::AngleAxisd(delta_angle_axis.norm(), delta_angle_axis.normalized()).toRotationMatrix();
+        state._rotation = last_state._rotation * Eigen::AngleAxisd(delta_angle_axis.norm(), delta_angle_axis.normalized()).toRotationMatrix();
     }
     // Error-state. Not needed.
 
     // Covariance of the error-state.   
     Eigen::Matrix<double, 15, 15> Fx = Eigen::Matrix<double, 15, 15>::Identity();
     Fx.block<3, 3>(0, 3)   = Eigen::Matrix3d::Identity() * delta_t;
-    Fx.block<3, 3>(3, 6)   = - state._orientation.toRotationMatrix() * BaseTools::GetSkewMatrix(cur_imu._accel) * delta_t;
-    Fx.block<3, 3>(3, 9)   = - state._orientation.toRotationMatrix() * delta_t;
+    Fx.block<3, 3>(3, 6)   = - state._rotation * BaseTools::GetSkewMatrix(cur_imu._accel) * delta_t;
+    Fx.block<3, 3>(3, 9)   = - state._rotation * delta_t;
     if (delta_angle_axis.norm() > 1e-12) {
         Fx.block<3, 3>(6, 6) = Eigen::AngleAxisd(delta_angle_axis.norm(), delta_angle_axis.normalized()).toRotationMatrix().transpose();
     } else {

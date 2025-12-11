@@ -3,6 +3,7 @@
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "novatel_oem7_msgs/msg/heading2.hpp"
 #include "novatel_oem7_msgs/msg/inspva.hpp"
+#include "nav_msgs/msg/path.hpp"
 
 #include "rclcpp/qos.hpp"
 #include "rclcpp/executors.hpp"
@@ -47,13 +48,30 @@ public:
     heading_sub_ = this->create_subscription<novatel_oem7_msgs::msg::HEADING2>(
       "/bynav/heading2", qos, std::bind(&GlocNode::heading_callback, this, std::placeholders::_1));
 
+    path_pub_ = this->create_publisher<nav_msgs::msg::Path>("trajectory", 10);
+
+
     return true;
   }
 
   bool proc()
   {
-    std::cout << "proc ..." << std::endl;
-    return true;
+    if (_initialed) {
+      _message.header.stamp = this->get_clock()->now();
+      _message.header.frame_id = "map";
+
+      _message.poses.clear();
+      for (const auto& pose : trajectory_) {
+          _message.poses.push_back(pose);
+      }
+
+      path_pub_->publish(_message);
+
+      return true;
+    } else {
+      return false;
+    }
+
   }
 
   void run()
@@ -80,6 +98,29 @@ public:
     } else {
       std::lock_guard<std::mutex> lock(_state_mtx);
       _imu_processor.predict(imu_data, _state);
+
+      // 创建轨迹点
+      geometry_msgs::msg::PoseStamped pose;
+      pose.header.frame_id = "map";
+      pose.pose.position.x = _state._position(0);
+      pose.pose.position.y = _state._position(1);
+      pose.pose.position.z = _state._position(2);
+
+      Eigen::Quaterniond q(_state._rotation);
+
+      pose.pose.orientation.w = q.w();
+      pose.pose.orientation.x = q.x();
+      pose.pose.orientation.y = q.y();
+      pose.pose.orientation.z = q.z();
+
+      trajectory_.push_back(pose);
+
+      // 如果轨迹大小超过最大值，移除最旧的点
+      if (trajectory_.size() > 1000) {
+          trajectory_.pop_front();  // 移除最旧的轨迹点
+      }
+      
+  
     }
   }
 
@@ -127,6 +168,7 @@ public:
   rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr gps_sub_;
   rclcpp::Subscription<novatel_oem7_msgs::msg::HEADING2>::SharedPtr heading_sub_;
   rclcpp::Subscription<novatel_oem7_msgs::msg::INSPVA>::SharedPtr ins_scription_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
 
   Initializer _initializer;
   ImuProcessor _imu_processor;
@@ -134,6 +176,9 @@ public:
 
   std::mutex _state_mtx;
   State _state;
+
+  nav_msgs::msg::Path _message;
+  std::deque<geometry_msgs::msg::PoseStamped> trajectory_;
 
 //   rclcpp::Publisher<novatel_oem7_msgs::msg::Localization>::SharedPtr gloc_pub_;
   bool _initialed = false;

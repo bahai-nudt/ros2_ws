@@ -23,7 +23,7 @@ public:
     double _acc_bias_noise;
     double _gyro_bias_noise;
 
-    const Eigen::Vector3d _gravity;
+    Eigen::Vector3d _gravity;
 
 
 };

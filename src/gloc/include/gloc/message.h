@@ -30,7 +30,7 @@ struct Heading {
 struct State {
     Eigen::Vector3d _position;
     Eigen::Vector3d _velocity;
-    Eigen::Quaterniond _orientation;
+    Eigen::Matrix3d _rotation;
     Eigen::Vector3d _bias_accel;
     Eigen::Vector3d _bias_gyro;
 
