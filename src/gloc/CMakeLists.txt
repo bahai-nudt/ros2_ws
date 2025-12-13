@@ -35,9 +35,11 @@ src/imu_processor.cpp
 src/initializer.cpp
 )
 
+target_link_directories(gloc_node PRIVATE /usr/lib/x86_64-linux-gnu)
 target_link_libraries(gloc_node 
 ${PROJ_LIBRARIES} 
 ${PCL_LIBRARIES}
+GeographicLib
 ) 
 
 ament_target_dependencies(gloc_node

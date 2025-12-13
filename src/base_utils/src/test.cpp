@@ -17,68 +17,32 @@ using namespace GeographicLib;
  
 int main() {
 
+  double lon = 116.4;
+  double lat = 39.9;
+  std::vector<double> utm_xyz = Coordinate::lla2utm(lon, lat, 0);
+
+  std::cout << utm_xyz[0] << std::endl;
+  std::cout << utm_xyz[1] << std::endl;
+  std::cout << utm_xyz[2] << std::endl;
+
+  // utm 转 lla
+  std::vector<double> lla;
+  lla = Coordinate::utm2lla(448709, 4416830, 0, 50);
+
+  std::cout << lla[0] << std::endl;
+  std::cout << lla[1] << std::endl;
+  std::cout << lla[2] << std::endl;
 
 
-    // utm 转 lla
-   try {
-    // Miscellaneous conversions
-    double lat = 39.9, lon = 116.4;
-    GeoCoords c(50, true, 448709, 4416831);
-    cout << c.Latitude() << "\n";
-    cout << c.Longitude() << "\n";
-    // c.Reset("18TWN0050");
-    // cout << c.DMSRepresentation() << "\n";
-    // cout << c.Latitude() << " " << c.Longitude() << "\n";
-    // c.Reset("1d38'W 55d30'N");
-    // cout << c.GeoRepresentation() << "\n";
-  }
-  catch (const exception& e) {
-    cerr << "Caught exception: " << e.what() << "\n";
-    return 1;
-  }
+  
+  // lla 转 enu， enu 转 lla
+  double lon0 = 116.41;
+  double lat0 = 39.91;
+  std::vector<double> enu = Coordinate::lla2enu(lon0, lat0, 0, lon, lat, 0);
 
-
-    // lla 转 utm
-//   try {
-//     // Miscellaneous conversions
-//     double lat = 39.9, lon = 116.4;
-//     GeoCoords c(lat, lon);
-//     cout << c.UTMUPSRepresentation(true) << "\n";
-//     // c.Reset("18TWN0050");
-//     // cout << c.DMSRepresentation() << "\n";
-//     // cout << c.Latitude() << " " << c.Longitude() << "\n";
-//     // c.Reset("1d38'W 55d30'N");
-//     // cout << c.GeoRepresentation() << "\n";
-//   }
-//   catch (const exception& e) {
-//     cerr << "Caught exception: " << e.what() << "\n";
-//     return 1;
-//   }
-
-
-// lla 转 enu， enu 转 lla
-
-    // double lat0 = 39.9041; // 纬度
-    // double lon0 = 116.4071; // 经度
-    // double height0 = 0; // 高程（米）
-
-    // // 创建 LocalCartesian 对象，表示 ENU 坐标系
-    // LocalCartesian local(lat0, lon0, height0);
-
-    // // ECEF 坐标（假设）
-    // double lat = 39.9042; // 纬度
-    // double lon = 116.4074; // 经度
-    // double height = 0; // 高程（米）
-
-    // // 转换 ECEF 到 ENU 坐标
-    // double east, north, up;
-    // local.Forward(lat, lon, height, east, north, up);
-
-    // // 输出结果
-    // std::cout << "ENU Coordinates: " << std::endl;
-    // std::cout << "East: " << east << std::endl;
-    // std::cout << "North: " << north << std::endl;
-    // std::cout << "Up: " << up << std::endl;
+  std::cout << enu[0] << std::endl;
+  std::cout << enu[1] << std::endl;
+  std::cout << enu[2] << std::endl;
 
     return 0;
 

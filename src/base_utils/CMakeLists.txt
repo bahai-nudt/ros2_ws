@@ -25,9 +25,10 @@ include_directories(
 # 创建一个库
 add_library(base_utils SHARED
   src/tools.cpp
+  src/coordinate.cpp
 )
 
-target_link_libraries(base_utils ${PROJ_LIBRARIES} ${PCL_LIBRARIES}
+target_link_libraries(base_utils ${PROJ_LIBRARIES} ${PCL_LIBRARIES} GeographicLib
 )
 ament_target_dependencies(base_utils rclcpp std_msgs geometry_msgs)
 
@@ -48,9 +49,9 @@ install(
 add_executable(test_demo
   src/test.cpp
   src/tools.cpp
+  src/coordinate.cpp
 )
 
-target_link_directories(test_demo PRIVATE /usr/lib/x86_64-linux-gnu)
 target_link_libraries(test_demo ${PROJ_LIBRARIES} ${PCL_LIBRARIES} GeographicLib
 )
 ament_target_dependencies(test_demo rclcpp std_msgs geometry_msgs)

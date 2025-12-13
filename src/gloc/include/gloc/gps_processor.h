@@ -8,7 +8,6 @@
 class GpsProcessor {
 public:
     GpsProcessor();
-    GpsProcessor(const Eigen::Vector3d& pos);
     void update(GpsData gps_data, State& state);
 
 
@@ -21,7 +20,7 @@ public:
 
     void add_delta2state(const Eigen::Matrix<double, 15, 1>& delta_x, State& state);
 
-    Eigen::Vector3d _pos;
+    Eigen::Vector3d _lever_arm = Eigen::Vector3d(0.0, 0.0, 0.0);
 };
 
 

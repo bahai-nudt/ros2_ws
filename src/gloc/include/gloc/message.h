@@ -35,6 +35,8 @@ struct State {
     Eigen::Vector3d _bias_gyro;
 
     Eigen::Matrix<double, 15, 15> _cov;
+
+    Eigen::Vector3d _init_lla;
     double _timestamp;
 };
 
