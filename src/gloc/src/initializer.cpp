@@ -47,7 +47,7 @@
         std::cout << "初始化角度： " << heading._heading * 180 / 3.1415926 << std::endl;
 
         state._timestamp = gps_data._timestamp;
-        state._position = Eigen::Vector3d(0, 0, 0);
+        state._position = -rotation_vector.toRotationMatrix() * Eigen::Vector3d(-0.43, 0.242, 1.92); //Eigen::Vector3d(0, 0, 0);
         state._velocity = (Eigen::Vector3d(0, 0, 0) - last_enu_vec) / delta_t;//Eigen::Vector3d(0, 0, 0);
         state._rotation = rotation_vector.toRotationMatrix();
         state._bias_accel = Eigen::Vector3d(0, 0, 0);

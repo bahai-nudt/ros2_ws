@@ -76,7 +76,7 @@ public:
       path_pub_->publish(_message);
 
       std::fstream fs("output2.txt", std::ios::in | std::ios::out | std::ios::app);
-      fs << _state._position(0) << "," << _state._position(1) << "," << _state._position(2) << "\n";
+      fs << _state._position(0) << "," << _state._position(1) << "," << 0 << "\n";//_state._position(2) << "\n";
       fs.close();
 
       return true;
@@ -166,7 +166,7 @@ public:
       std::vector<double> local_coor = Coordinate::lla2enu(_state._init_lla(0), _state._init_lla(1), _state._init_lla(2), gps_data._lla(0), gps_data._lla(1), gps_data._lla(2));
 
       std::fstream fs("gps.txt", std::ios::in | std::ios::out | std::ios::app);
-      fs << local_coor[0] << "," << local_coor[1] << "," << local_coor[2] << "\n";
+      fs << local_coor[0] << "," << local_coor[1] << "," << 0 << "\n" ;//local_coor[2] << "\n";
       fs.close();
     }
 

@@ -4,10 +4,10 @@
 #include <fstream>
 
 ImuProcessor::ImuProcessor() {
-    _acc_noise = 0.1;
-    _gyro_noise = 0.01;
-    _acc_bias_noise = 0.1;
-    _gyro_bias_noise = 0.01;
+    _acc_noise = 0.0001;
+    _gyro_noise = 0.00001;
+    _acc_bias_noise = 0.0001;
+    _gyro_bias_noise = 0.00001;
 
     _gravity << 0, 0, -9.81;
 
