@@ -4,6 +4,7 @@
 #include "novatel_oem7_msgs/msg/heading2.hpp"
 #include "novatel_oem7_msgs/msg/inspva.hpp"
 #include "nav_msgs/msg/path.hpp"
+#include "novatel_oem7_msgs/msg/bestgnsspos.hpp"
 
 #include "rclcpp/qos.hpp"
 #include "rclcpp/executors.hpp"
@@ -13,10 +14,13 @@
 #include "gloc/imu_processor.h"
 #include "gloc/message.h"
 #include "gloc/gloc_data_buffer.h"
+#include "base_utils/coordinate.h"
 
 #include <cmath>
 #include <mutex>
 #include <iomanip>
+#include <fstream>
+
 
 class GlocNode : public rclcpp::Node
 {
@@ -42,8 +46,12 @@ public:
     imu_sub_ = this->create_subscription<sensor_msgs::msg::Imu>(
       "/bynav/imu/data_raw", qos, std::bind(&GlocNode::imu_callback, this, std::placeholders::_1));
 
-    gps_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
-      "/gps/fix", 10, std::bind(&GlocNode::gps_callback, this, std::placeholders::_1));
+    ins_sub_ = this->create_subscription<novatel_oem7_msgs::msg::INSPVA>(
+      "/bynav/inspva", qos, std::bind(&GlocNode::ins_callback, this, std::placeholders::_1));
+
+
+    gps_sub_ = this->create_subscription<novatel_oem7_msgs::msg::BESTGNSSPOS>(
+      "/bynav/bestgnsspos", 10, std::bind(&GlocNode::gps_callback, this, std::placeholders::_1));
 
     heading_sub_ = this->create_subscription<novatel_oem7_msgs::msg::HEADING2>(
       "/bynav/heading2", qos, std::bind(&GlocNode::heading_callback, this, std::placeholders::_1));
@@ -67,6 +75,10 @@ public:
 
       path_pub_->publish(_message);
 
+      std::fstream fs("output2.txt", std::ios::in | std::ios::out | std::ios::app);
+      fs << _state._position(0) << "," << _state._position(1) << "," << _state._position(2) << "\n";
+      fs.close();
+
       return true;
     } else {
       return false;
@@ -76,7 +88,7 @@ public:
 
   void run()
   {
-    std::shared_ptr<rclcpp::Rate> rate = std::make_shared<rclcpp::Rate>(10);
+    std::shared_ptr<rclcpp::Rate> rate = std::make_shared<rclcpp::Rate>(100);
     while (rclcpp::ok()) {
       rate->sleep();
       proc();
@@ -124,16 +136,23 @@ public:
     }
   }
 
-  void gps_callback(const sensor_msgs::msg::NavSatFix::SharedPtr msg)
+  void gps_callback(const novatel_oem7_msgs::msg::BESTGNSSPOS::SharedPtr msg)
   {
     GpsData gps_data;
-    gps_data._timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
-    gps_data._lla << msg->longitude, msg->latitude, msg->altitude;
-    gps_data._cov << msg->position_covariance[0], msg->position_covariance[1], msg->position_covariance[2],
-                     msg->position_covariance[3], msg->position_covariance[4], msg->position_covariance[5],
-                     msg->position_covariance[6], msg->position_covariance[7], msg->position_covariance[8];
+    gps_data._timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;                   
+    gps_data._lla << msg->lon, msg->lat, msg->hgt;
+    gps_data._cov << msg->lon_stdev, 0, 0,
+                     0, msg->lat_stdev, 0,
+                     0, 0, msg->hgt_stdev;
 
-    gps_data._status = msg->status.status;
+    gps_data._status = msg->pos_type.type;
+
+    if (gps_data._status != 50) {
+      return;
+    }
+
+
+    // std::cout << "gps type:  " << gps_data._status << std::endl;
 
     if (!_initialed) {
       std::lock_guard<std::mutex> lock(_state_mtx);
@@ -143,6 +162,32 @@ public:
     } else {
       std::lock_guard<std::mutex> lock(_state_mtx);
       _gps_processor.update(gps_data, _state);
+
+      std::vector<double> local_coor = Coordinate::lla2enu(_state._init_lla(0), _state._init_lla(1), _state._init_lla(2), gps_data._lla(0), gps_data._lla(1), gps_data._lla(2));
+
+      std::fstream fs("gps.txt", std::ios::in | std::ios::out | std::ios::app);
+      fs << local_coor[0] << "," << local_coor[1] << "," << local_coor[2] << "\n";
+      fs.close();
+    }
+
+    SingletonDataBuffer::getInstance()._gps_buffer.push(gps_data);
+  }
+
+
+  void ins_callback(const novatel_oem7_msgs::msg::INSPVA::SharedPtr msg)
+  {
+    if (!_initialed) {
+      ;
+    } else {
+      double longitude = msg->longitude;
+      double latitude = msg->latitude;
+      double altitude = msg->height;
+
+      std::vector<double> local_coor = Coordinate::lla2enu(_state._init_lla(0), _state._init_lla(1), _state._init_lla(2), longitude, latitude, altitude);
+      std::fstream fs("ins.txt", std::ios::in | std::ios::out | std::ios::app);
+      fs << local_coor[0] << "," << local_coor[1] << "," << local_coor[2] << "\n";
+      fs.close();
+
     }
   }
 
@@ -150,6 +195,8 @@ public:
     Heading heading;
     heading._timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
     heading._heading = msg->heading / 180.0 * M_PI;
+
+    // std::cout << "heading: " << msg->heading << std::endl;
 
     SingletonDataBuffer::getInstance()._heading_buffer.push(heading);
   }
@@ -165,9 +212,9 @@ public:
   std::thread thread_;
 
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_;
-  rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr gps_sub_;
+  rclcpp::Subscription<novatel_oem7_msgs::msg::BESTGNSSPOS>::SharedPtr gps_sub_;
   rclcpp::Subscription<novatel_oem7_msgs::msg::HEADING2>::SharedPtr heading_sub_;
-  rclcpp::Subscription<novatel_oem7_msgs::msg::INSPVA>::SharedPtr ins_scription_;
+  rclcpp::Subscription<novatel_oem7_msgs::msg::INSPVA>::SharedPtr ins_sub_;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
 
   Initializer _initializer;

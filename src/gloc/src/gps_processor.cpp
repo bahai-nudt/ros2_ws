@@ -20,6 +20,9 @@ void GpsProcessor::update(GpsData gps_data, State& state) {
     // Add delta_x to state.
     add_delta2state(delta_x, state);
 
+    // std::cout << "加速度零偏" << state._bias_accel(0) << "," << state._bias_accel(1) << "," << state._bias_accel(2) << std::endl;
+    // std::cout << "陀螺仪零偏" << state._bias_gyro(0) << "," << state._bias_gyro(1) << "," << state._bias_gyro(2) << std::endl;
+
     // Covarance.
     const Eigen::MatrixXd I_KH = Eigen::Matrix<double, 15, 15>::Identity() - K * H;
     state._cov = I_KH * P * I_KH.transpose() + K * V * K.transpose();

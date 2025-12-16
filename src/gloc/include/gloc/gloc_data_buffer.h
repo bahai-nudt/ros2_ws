@@ -20,6 +20,7 @@ public:
 
     BoundedDeque<ImuData> _imu_buffer;
     BoundedDeque<Heading> _heading_buffer;
+    BoundedDeque<GpsData> _gps_buffer;
 
     std::mutex _heading_mtx;
     std::mutex _imu_mtx;
@@ -28,6 +29,7 @@ private:
     SingletonDataBuffer(){
         _heading_buffer._max_size = 100;
         _imu_buffer._max_size = 1000;
+        _gps_buffer._max_size = 100;
     };
 
     SingletonDataBuffer(const SingletonDataBuffer&) = delete;
