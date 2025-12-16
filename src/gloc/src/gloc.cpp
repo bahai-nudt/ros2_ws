@@ -49,7 +49,6 @@ public:
     ins_sub_ = this->create_subscription<novatel_oem7_msgs::msg::INSPVA>(
       "/bynav/inspva", qos, std::bind(&GlocNode::ins_callback, this, std::placeholders::_1));
 
-
     gps_sub_ = this->create_subscription<novatel_oem7_msgs::msg::BESTGNSSPOS>(
       "/bynav/bestgnsspos", 10, std::bind(&GlocNode::gps_callback, this, std::placeholders::_1));
 
@@ -74,10 +73,6 @@ public:
       }
 
       path_pub_->publish(_message);
-
-      std::fstream fs("output2.txt", std::ios::in | std::ios::out | std::ios::app);
-      fs << _state._position(0) << "," << _state._position(1) << "," << 0 << "\n";//_state._position(2) << "\n";
-      fs.close();
 
       return true;
     } else {
@@ -111,6 +106,10 @@ public:
       std::lock_guard<std::mutex> lock(_state_mtx);
       _imu_processor.predict(imu_data, _state);
 
+      std::fstream fs("output2.txt", std::ios::in | std::ios::out | std::ios::app);
+      fs << _state._position(0) << "," << _state._position(1) << "," << 0 << "\n";//_state._position(2) << "\n";
+      fs.close();
+
       // 创建轨迹点
       geometry_msgs::msg::PoseStamped pose;
       pose.header.frame_id = "map";
@@ -131,8 +130,6 @@ public:
       if (trajectory_.size() > 1000) {
           trajectory_.pop_front();  // 移除最旧的轨迹点
       }
-      
-  
     }
   }
 
@@ -141,9 +138,12 @@ public:
     GpsData gps_data;
     gps_data._timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;                   
     gps_data._lla << msg->lon, msg->lat, msg->hgt;
-    gps_data._cov << msg->lon_stdev, 0, 0,
-                     0, msg->lat_stdev, 0,
-                     0, 0, msg->hgt_stdev;
+    // gps_data._cov << msg->lon_stdev, 0, 0,
+    //                  0, msg->lat_stdev, 0,
+    //                  0, 0, msg->hgt_stdev;
+    gps_data._cov << 0.3, 0, 0,
+                  0, 0.3, 0,
+                  0, 0, 0.5;
 
     gps_data._status = msg->pos_type.type;
 
@@ -161,7 +161,7 @@ public:
       }
     } else {
       std::lock_guard<std::mutex> lock(_state_mtx);
-      _gps_processor.update(gps_data, _state);
+      // _gps_processor.update(gps_data, _state);
 
       std::vector<double> local_coor = Coordinate::lla2enu(_state._init_lla(0), _state._init_lla(1), _state._init_lla(2), gps_data._lla(0), gps_data._lla(1), gps_data._lla(2));
 

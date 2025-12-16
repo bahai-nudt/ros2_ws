@@ -8,7 +8,9 @@
 class GpsProcessor {
 public:
     GpsProcessor();
-    void update(GpsData gps_data, State& state);
+    bool update(GpsData gps_data, State& state);
+
+    bool update(GpsData gps_data);
 
 
     void compute_jacobian_residual(

@@ -1,12 +1,36 @@
 #include "gloc/gps_processor.h"
 #include "base_utils/coordinate.h"
 #include "base_utils/tools.h"
+#include <deque>
+#include <iomanip>
 
 GpsProcessor::GpsProcessor() {
 
 }
 
-void GpsProcessor::update(GpsData gps_data, State& state) {
+bool GpsProcessor::update(GpsData gps_data) {
+   /*
+    std::deque<State> state_cache;
+    if (1) {
+        std::lock_guard<std::mutex> lock(SingletonDataBuffer::getInstance()._state_mtx);
+        state_cache = SingletonDataBuffer::getInstance()._state_buffer.cache;
+    }
+
+    State state;
+    int state_ind = 0;
+    for (size_t i = state_cache.size() - 1; i >= 0; i++) {
+        if (state_cache[i]._timestamp < gps_data._timestamp) {
+            cur_state_ind = i;
+            cur_state = state_cache[i];
+            break;
+        } 
+    }
+
+    if (state_ind == 0) {
+        std::cout << "gps 时间戳与 state不匹配" << std::endl;
+        return false;
+    }
+
     Eigen::Matrix<double, 3, 15> H;
     Eigen::Vector3d residual;
     compute_jacobian_residual(state._init_lla, gps_data, state, H, residual);
@@ -20,12 +44,38 @@ void GpsProcessor::update(GpsData gps_data, State& state) {
     // Add delta_x to state.
     add_delta2state(delta_x, state);
 
-    // std::cout << "加速度零偏" << state._bias_accel(0) << "," << state._bias_accel(1) << "," << state._bias_accel(2) << std::endl;
-    // std::cout << "陀螺仪零偏" << state._bias_gyro(0) << "," << state._bias_gyro(1) << "," << state._bias_gyro(2) << std::endl;
+    // Covarance.
+    const Eigen::MatrixXd I_KH = Eigen::Matrix<double, 15, 15>::Identity() - K * H;
+    state._cov = I_KH * P * I_KH.transpose() + K * V * K.transpose();*/
+    return true;
+}
+
+
+bool GpsProcessor::update(GpsData gps_data, State& state) {
+
+    if (gps_data._timestamp - state._timestamp > 0.02 || gps_data._timestamp < state._timestamp) {
+        std::cout << "gps time is far away from state time or gps time before states" << std::endl;
+        return false;
+    }
+
+    Eigen::Matrix<double, 3, 15> H;
+    Eigen::Vector3d residual;
+    compute_jacobian_residual(state._init_lla, gps_data, state, H, residual);
+    const Eigen::Matrix3d& V = gps_data._cov;
+
+    // EKF.
+    const Eigen::MatrixXd P = state._cov;
+    const Eigen::MatrixXd K = P * H.transpose() * (H * P * H.transpose() + V).inverse();
+    const Eigen::VectorXd delta_x = K * residual;
+
+    // Add delta_x to state.
+    add_delta2state(delta_x, state);
 
     // Covarance.
     const Eigen::MatrixXd I_KH = Eigen::Matrix<double, 15, 15>::Identity() - K * H;
     state._cov = I_KH * P * I_KH.transpose() + K * V * K.transpose();
+
+    return true;
 }
 
 
@@ -42,6 +92,7 @@ void GpsProcessor::compute_jacobian_residual(
 
     Eigen::Vector3d local_enu;
     local_enu << local_coor[0], local_coor[1], local_coor[2];
+    // local_enu = local_enu - state._velocity *(gps_data._timestamp - state._timestamp);
 
 
     // Compute residual.

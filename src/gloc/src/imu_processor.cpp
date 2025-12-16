@@ -1,5 +1,6 @@
 #include "gloc/imu_processor.h"
 #include "base_utils/tools.h"
+#include "gloc/gloc_data_buffer.h"
 #include <iomanip>
 #include <fstream>
 
@@ -25,10 +26,16 @@ void ImuProcessor::predict(const ImuData& cur_imu, State& state) {
     
     const double delta_t = cur_imu._timestamp - state._timestamp;
 
+    std::fstream fs("delta_imu_t.txt", std::ios::in | std::ios::out | std::ios::app);
+    fs << delta_t << "\n";//_state._position(2) << "\n";
+    fs.close();
+
     if (delta_t < 1e-3) { // 小于1ms
         // TODO add log
         return;
     }
+
+    // std::cout << "delta_t_imu:  " << delta_t << std::endl;
 
     const double delta_t2 = delta_t * delta_t;
 
@@ -39,9 +46,9 @@ void ImuProcessor::predict(const ImuData& cur_imu, State& state) {
                    0.5 * (last_state._rotation * (cur_imu._accel - state._bias_accel) + _gravity) * delta_t2;
     state._velocity = last_state._velocity + (last_state._rotation * (cur_imu._accel - state._bias_accel) + _gravity) * delta_t;
 
-    std::fstream fs("velocity.txt", std::ios::in | std::ios::out | std::ios::app);
-    fs << "timestamp:  " << std::setprecision(16) << cur_imu._timestamp << state._velocity(0) << "," << state._velocity(1) << "," << state._velocity(2) << std::endl;
-    fs.close();
+    // std::fstream fs("velocity.txt", std::ios::in | std::ios::out | std::ios::app);
+    // fs << "timestamp:  " << std::setprecision(16) << cur_imu._timestamp << state._velocity(0) << "," << state._velocity(1) << "," << state._velocity(2) << std::endl;
+    // fs.close();
 
     const Eigen::Vector3d delta_angle_axis = (cur_imu._gyro - state._bias_gyro) * delta_t;
     if (delta_angle_axis.norm() > 1e-12) {
@@ -75,4 +82,9 @@ void ImuProcessor::predict(const ImuData& cur_imu, State& state) {
     // Time and imu.
     state._timestamp = cur_imu._timestamp;
 
+
+    if (1) {
+        std::lock_guard<std::mutex> lock(SingletonDataBuffer::getInstance()._state_mtx);
+        SingletonDataBuffer::getInstance()._state_buffer.push(state);
+    }
 }
