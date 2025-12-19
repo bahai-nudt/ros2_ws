@@ -17,11 +17,8 @@ def lla_to_utm(lat, lon):
     return easting, northing
 
 # 示例: 北京的经纬度
-lat = 39.9042
-lon = 116.4074
-
-double lat = 39.9042;   // 纬度 (北京)
-double lon = 116.4074;  // 经度
+lat = 41.144
+lon = 118.21
 
 
 

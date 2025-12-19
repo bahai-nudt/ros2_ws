@@ -22,7 +22,7 @@ public:
 
     void add_delta2state(const Eigen::Matrix<double, 15, 1>& delta_x, State& state);
 
-    Eigen::Vector3d _lever_arm = Eigen::Vector3d(-0.43, 0.242, 1.92);
+    Eigen::Vector3d _lever_arm = Eigen::Vector3d(0.0, 0.0, 0.0);
 };
 
 

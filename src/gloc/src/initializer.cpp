@@ -35,10 +35,6 @@
 
         double delta_t = gps_data._timestamp - last_gps._timestamp;
 
-        
-
-
-
 
         // 北云设备， heading与azimuth定义一样，正北为0,顺时针为正
         heading._heading = heading._heading - M_PI / 2.0;
@@ -47,7 +43,7 @@
         std::cout << "初始化角度： " << heading._heading * 180 / 3.1415926 << std::endl;
 
         state._timestamp = gps_data._timestamp;
-        state._position = -rotation_vector.toRotationMatrix() * Eigen::Vector3d(-0.43, 0.242, 1.92); //Eigen::Vector3d(0, 0, 0);
+        state._position = -rotation_vector.toRotationMatrix() * _lever_arm;
         state._velocity = (Eigen::Vector3d(0, 0, 0) - last_enu_vec) / delta_t;//Eigen::Vector3d(0, 0, 0);
         state._rotation = rotation_vector.toRotationMatrix();
         state._bias_accel = Eigen::Vector3d(0, 0, 0);

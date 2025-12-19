@@ -26,10 +26,6 @@ void ImuProcessor::predict(const ImuData& cur_imu, State& state) {
     
     const double delta_t = cur_imu._timestamp - state._timestamp;
 
-    std::fstream fs("delta_imu_t.txt", std::ios::in | std::ios::out | std::ios::app);
-    fs << delta_t << "\n";//_state._position(2) << "\n";
-    fs.close();
-
     if (delta_t < 1e-3) { // 小于1ms
         // TODO add log
         return;

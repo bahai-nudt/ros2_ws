@@ -34,6 +34,10 @@ public:
   bool init()
   {
     initIO();
+    _initializer._lever_arm = _lever_arm;
+    _gps_processor._lever_arm = _lever_arm;
+
+
     return true;
   }
 
@@ -138,12 +142,12 @@ public:
     GpsData gps_data;
     gps_data._timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;                   
     gps_data._lla << msg->lon, msg->lat, msg->hgt;
-    // gps_data._cov << msg->lon_stdev, 0, 0,
-    //                  0, msg->lat_stdev, 0,
-    //                  0, 0, msg->hgt_stdev;
-    gps_data._cov << 0.3, 0, 0,
-                  0, 0.3, 0,
-                  0, 0, 0.5;
+    gps_data._cov << msg->lon_stdev, 0, 0,
+                     0, msg->lat_stdev, 0,
+                     0, 0, msg->hgt_stdev;
+    // gps_data._cov << 0.3, 0, 0,
+    //               0, 0.3, 0,
+    //               0, 0, 0.5;
 
     gps_data._status = msg->pos_type.type;
 
@@ -161,7 +165,7 @@ public:
       }
     } else {
       std::lock_guard<std::mutex> lock(_state_mtx);
-      // _gps_processor.update(gps_data, _state);
+      _gps_processor.update(gps_data, _state);
 
       std::vector<double> local_coor = Coordinate::lla2enu(_state._init_lla(0), _state._init_lla(1), _state._init_lla(2), gps_data._lla(0), gps_data._lla(1), gps_data._lla(2));
 
@@ -185,7 +189,7 @@ public:
 
       std::vector<double> local_coor = Coordinate::lla2enu(_state._init_lla(0), _state._init_lla(1), _state._init_lla(2), longitude, latitude, altitude);
       std::fstream fs("ins.txt", std::ios::in | std::ios::out | std::ios::app);
-      fs << local_coor[0] << "," << local_coor[1] << "," << local_coor[2] << "\n";
+      fs << local_coor[0] << "," << local_coor[1] << "," << 0 << "\n";
       fs.close();
 
     }
@@ -229,6 +233,10 @@ public:
 
 //   rclcpp::Publisher<novatel_oem7_msgs::msg::Localization>::SharedPtr gloc_pub_;
   bool _initialed = false;
+
+  Eigen::Vector3d _lever_arm = Eigen::Vector3d(-0.51 1.65 1.80);
+
+
 };
 
 int main(int argc, char * argv[])
