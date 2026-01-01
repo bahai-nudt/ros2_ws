@@ -75,6 +75,9 @@ bool GpsProcessor::update(GpsData gps_data, State& state) {
     const Eigen::MatrixXd I_KH = Eigen::Matrix<double, 15, 15>::Identity() - K * H;
     state._cov = I_KH * P * I_KH.transpose() + K * V * K.transpose();
 
+
+    // std::cout << "cov:    " << state._cov << std::endl;
+
     return true;
 }
 
@@ -96,12 +99,10 @@ void GpsProcessor::compute_jacobian_residual(
 
     Eigen::Vector3d euler_angles = state._rotation.eulerAngles(2, 0, 1);
 
+    std::cout << "欧拉角" << euler_angles(0) * 180 / 3.1415926 << std::endl;
+
     // Compute residual.
     residual = local_enu - (state._position  + state._rotation * _lever_arm);
-
-        std::cout << "观测航向角度：  " <<euler_angles * 180 / 3.14<< std::endl;
-    std::cout << "加速度零偏： " << state._bias_accel << std::endl;
-    std::cout << "角速度零篇： " <<  state._bias_gyro << std::endl;
 
     // Compute jacobian.
     jacobian.setZero();

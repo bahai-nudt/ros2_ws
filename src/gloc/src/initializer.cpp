@@ -43,17 +43,8 @@
 
         heading._heading = (heading._heading - M_PI / 2.0);
         std::cout << "ins azimuth: " << ins._azimuth << std::endl;
-        std::cout << "heading: " << heading._heading * 180 / M_PI << std::endl; 
 
         Eigen::AngleAxisd rotation_vector(-heading._heading, Eigen::Vector3d(0, 0, 1));
-
-
-        // Eigen::AngleAxisd rotation_vector(
-        //     heading._heading,              
-        //     Eigen::Vector3d::UnitZ()
-        // );
-
-
 
         state._timestamp = gps_data._timestamp;
         state._position = -rotation_vector.toRotationMatrix() * _lever_arm;
@@ -63,13 +54,17 @@
         state._bias_gyro = Eigen::Vector3d(0.00127599, 0.00106483, 0.0011411);
 
         state._cov = Eigen::Matrix<double, 15, 15>::Identity();
+        state._cov.block(0, 0, 3, 3) = Eigen::Matrix3d::Identity() * 0.3;
+        state._cov.block(3, 3, 3, 3) = Eigen::Matrix3d::Identity() * 0.2;
+        state._cov.block(6, 6, 3, 3) = Eigen::Matrix3d::Identity() * 0.05;
+        state._cov.block(9, 9, 3, 3) = Eigen::Matrix3d::Identity() * 0.001;
+        state._cov.block(12, 12, 3, 3) = Eigen::Matrix3d::Identity() * 0.0001;
 
         state._timestamp = gps_data._timestamp;
 
         Eigen::Vector3d euler_angles = rotation_vector.toRotationMatrix().eulerAngles(2, 0, 1);
 
-        std::cout << "初始化角度： " << euler_angles * 180 / 3.1415926<< std::endl;
-        std::cout << "初始化heading: " << heading._heading * 180 / 3.1415926<< std::endl;
+        std::cout << "初始化角度： " << euler_angles(0) * 180 / 3.1415926<< std::endl;
 
         std::cout << "初始化成功，初始化速度: " << state._velocity(0) << "," << state._velocity(1) << "," << state._velocity(2) << std::endl;
         return true;
