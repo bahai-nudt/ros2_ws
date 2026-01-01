@@ -10,7 +10,7 @@ ImuProcessor::ImuProcessor() {
     _acc_bias_noise = 0.0001;
     _gyro_bias_noise = 0.00001;
 
-    _gravity << 0, 0, -9.81;
+    _gravity << 0, 0, -9.78;
 
 }
 
@@ -47,6 +47,7 @@ void ImuProcessor::predict(const ImuData& cur_imu, State& state) {
     // fs.close();
 
     const Eigen::Vector3d delta_angle_axis = (cur_imu._gyro - state._bias_gyro) * delta_t;
+
     if (delta_angle_axis.norm() > 1e-12) {
         state._rotation =  last_state._rotation * Eigen::AngleAxisd(delta_angle_axis.norm(), delta_angle_axis.normalized()).toRotationMatrix();
     }

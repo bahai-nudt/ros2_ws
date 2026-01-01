@@ -7,9 +7,6 @@
 
 #include "base_utils/bounded_deque.h"
 #include "base_utils/data_message.h"
-#include "message.h"
-
-#include "gloc/message.h"
 
 class SingletonDataBuffer {
 
@@ -19,22 +16,10 @@ public:
         return instance;
     }
 
-    BoundedDeque<ImuData> _imu_buffer;
-    BoundedDeque<Heading> _heading_buffer;
-    BoundedDeque<GpsData> _gps_buffer;
-    BoundedDeque<State> _state_buffer;
     BoundedDeque<Ins> _ins_buffer;
-
-    std::mutex _heading_mtx;
-    std::mutex _imu_mtx;
-    std::mutex _state_mtx;
 
 private:
     SingletonDataBuffer(){
-        _heading_buffer._max_size = 100;
-        _imu_buffer._max_size = 1000;
-        _gps_buffer._max_size = 100;
-        _state_buffer._max_size = 100;
         _ins_buffer._max_size = 100;
     };
 

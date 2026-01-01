@@ -19,6 +19,8 @@
 
         Heading heading = SingletonDataBuffer::getInstance()._heading_buffer.cache.back();
         GpsData last_gps = SingletonDataBuffer::getInstance()._gps_buffer.cache.back();
+        Ins ins = SingletonDataBuffer::getInstance()._ins_buffer.cache.back();
+
 
         if (fabs(heading._timestamp - gps_data._timestamp) > 1.0) {
             RCLCPP_WARN(logger, "heading timestamp is far away from gos timestamp:%d : %d", heading._timestamp, gps_data._timestamp);
@@ -37,20 +39,37 @@
 
 
         // 北云设备， heading与azimuth定义一样，正北为0,顺时针为正
-        heading._heading = heading._heading - M_PI / 2.0;
-        Eigen::AngleAxisd rotation_vector(heading._heading , Eigen::Vector3d(0, 0, 1));
 
-        std::cout << "初始化角度： " << heading._heading * 180 / 3.1415926 << std::endl;
+
+        heading._heading = (heading._heading - M_PI / 2.0);
+        std::cout << "ins azimuth: " << ins._azimuth << std::endl;
+        std::cout << "heading: " << heading._heading * 180 / M_PI << std::endl; 
+
+        Eigen::AngleAxisd rotation_vector(-heading._heading, Eigen::Vector3d(0, 0, 1));
+
+
+        // Eigen::AngleAxisd rotation_vector(
+        //     heading._heading,              
+        //     Eigen::Vector3d::UnitZ()
+        // );
+
+
 
         state._timestamp = gps_data._timestamp;
         state._position = -rotation_vector.toRotationMatrix() * _lever_arm;
         state._velocity = (Eigen::Vector3d(0, 0, 0) - last_enu_vec) / delta_t;//Eigen::Vector3d(0, 0, 0);
         state._rotation = rotation_vector.toRotationMatrix();
-        state._bias_accel = Eigen::Vector3d(0, 0, 0);
-        state._bias_gyro = Eigen::Vector3d(0, 0, 0);
+        state._bias_accel = Eigen::Vector3d(0.0793282, -0.0240076, -0.0114863);
+        state._bias_gyro = Eigen::Vector3d(0.00127599, 0.00106483, 0.0011411);
 
         state._cov = Eigen::Matrix<double, 15, 15>::Identity();
 
+        state._timestamp = gps_data._timestamp;
+
+        Eigen::Vector3d euler_angles = rotation_vector.toRotationMatrix().eulerAngles(2, 0, 1);
+
+        std::cout << "初始化角度： " << euler_angles * 180 / 3.1415926<< std::endl;
+        std::cout << "初始化heading: " << heading._heading * 180 / 3.1415926<< std::endl;
 
         std::cout << "初始化成功，初始化速度: " << state._velocity(0) << "," << state._velocity(1) << "," << state._velocity(2) << std::endl;
         return true;
