@@ -1,4 +1,5 @@
 #include "base_utils/tools.h"
+#include <iomanip>
 
 namespace BaseTools {
 
@@ -28,31 +29,41 @@ Eigen::Matrix3d GetSkewMatrix(const Eigen::Vector3d& v) {
     return w;
 }
 
-bool get_before_after_pose(Pose& pose_before, Pose& pose_after, double timestamp, const std::vector<Ins>& vector_ins) {
+bool get_before_after_pose(Pose& pose_before, Pose& pose_after, double timestamp, const std::deque<Ins>& deque_ins) {
 
-    int size = static_cast<int>(vector_ins.size());
+    
+    int size = static_cast<int>(deque_ins.size());
 
     if (size == 0) {
         return false;
     }
 
-    if (timestamp > vector_ins[size - 1]._timestamp || timestamp < vector_ins[0]._timestamp) {
+    std::cout << "timestamp:   " << std::setprecision(16) << timestamp << std::endl;
+    std::cout << "deque_ins[size - 1]._timestamp:  " << std::setprecision(16) << deque_ins[size - 1]._timestamp << std::endl;
+    std::cout << "deque_ins[size - 1]._timestamp:  " << std::setprecision(16) << deque_ins[0]._timestamp << std::endl;
+
+
+    if (timestamp > deque_ins[size - 1]._timestamp || timestamp < deque_ins[0]._timestamp) {
         return false;
     }
 
-    double timestamp_first = vector_ins[0]._timestamp;
-    int index = (timestamp - timestamp_first) * 100;
+    for (int i = size - 1; i > 0; i--) {
+        if (deque_ins[i]._timestamp > timestamp) {
+            continue;
+        }
 
-    if (index > size - 2) {
-        return false;
+        if (i >= size - 1) {
+            return false;
+        }
+        if (deque_ins[i+1]._timestamp - deque_ins[i]._timestamp > 18 * 1e-3 || deque_ins[i+1]._timestamp < timestamp ) {
+            return false;
+        }
+
+        pose_before = deque_ins[i]._pose;
+        pose_after = deque_ins[i+1]._pose;
+
+        return true;
     }
-    pose_before = vector_ins[index]._pose;
-    pose_after = vector_ins[index + 1]._pose;
-
-    return true;
-
 }
-
-
 
 };

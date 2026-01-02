@@ -20,6 +20,7 @@
 
 #include "compensation/compensation_data_buffer.h"
 #include "base_utils/coordinate.h"
+#include "base_utils/tools.h"
 
 #include <cmath>
 #include <mutex>
@@ -113,6 +114,12 @@ public:
   }
 
   void lidar_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
+
+    if (SingletonDataBuffer::getInstance()._ins_buffer.cache.size() < 80) {
+      return;
+    }
+
+
       double reference_time = msg->header.stamp.sec + static_cast<double>(msg->header.stamp.nanosec / 1e9);
 
       pcl::PointCloud<PointXYZIRT>::Ptr cloud(new pcl::PointCloud<PointXYZIRT>);
@@ -127,6 +134,28 @@ public:
         std::lock_guard<std::mutex> lock(SingletonDataBuffer::getInstance()._ins_mtx);
         cache = SingletonDataBuffer::getInstance()._ins_buffer.cache;
       }
+
+
+      for (int i = 0 ; i < cloud->points.size(); i++) {
+
+        Pose pose_before;
+        Pose pose_after;
+
+        double timestamp = cloud->points.at(i).timestamp;
+        if (!BaseTools::get_before_after_pose(pose_before, pose_after, timestamp, cache)) {
+          continue;
+        }
+
+        std::cout << "pose before:   " << pose_before.timestamp << std::endl;
+        std::cout << "pose after:   " << pose_after.timestamp << std::endl;
+        std::cout << "timestamp:   " << timestamp << std::endl;
+
+        std::exit(-1);
+
+
+      }
+
+
 
       // std::ostringstream oss;
       // oss << std::fixed << std::setprecision(6) << reference_time;
