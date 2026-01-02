@@ -28,5 +28,31 @@ Eigen::Matrix3d GetSkewMatrix(const Eigen::Vector3d& v) {
     return w;
 }
 
+bool get_before_after_pose(Pose& pose_before, Pose& pose_after, double timestamp, const std::vector<Ins>& vector_ins) {
+
+    int size = static_cast<int>(vector_ins.size());
+
+    if (size == 0) {
+        return false;
+    }
+
+    if (timestamp > vector_ins[size - 1]._timestamp || timestamp < vector_ins[0]._timestamp) {
+        return false;
+    }
+
+    double timestamp_first = vector_ins[0]._timestamp;
+    int index = (timestamp - timestamp_first) * 100;
+
+    if (index > size - 2) {
+        return false;
+    }
+    pose_before = vector_ins[index]._pose;
+    pose_after = vector_ins[index + 1]._pose;
+
+    return true;
+
+}
+
+
 
 };

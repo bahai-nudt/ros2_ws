@@ -16,6 +16,7 @@ public:
         return instance;
     }
 
+    std::mutex _ins_mtx;
     BoundedDeque<Ins> _ins_buffer;
 
 private:
