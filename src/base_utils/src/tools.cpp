@@ -38,11 +38,6 @@ bool get_before_after_pose(Pose& pose_before, Pose& pose_after, double timestamp
         return false;
     }
 
-    std::cout << "timestamp:   " << std::setprecision(16) << timestamp << std::endl;
-    std::cout << "deque_ins[size - 1]._timestamp:  " << std::setprecision(16) << deque_ins[size - 1]._timestamp << std::endl;
-    std::cout << "deque_ins[size - 1]._timestamp:  " << std::setprecision(16) << deque_ins[0]._timestamp << std::endl;
-
-
     if (timestamp > deque_ins[size - 1]._timestamp || timestamp < deque_ins[0]._timestamp) {
         return false;
     }

@@ -115,10 +115,11 @@ public:
 
   void lidar_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
 
-    if (SingletonDataBuffer::getInstance()._ins_buffer.cache.size() < 80) {
-      return;
-    }
+      if (SingletonDataBuffer::getInstance()._ins_buffer.cache.size() < 80) {
+        return;
+      }
 
+      std::cout << "lidar call back " << std::endl;
 
       double reference_time = msg->header.stamp.sec + static_cast<double>(msg->header.stamp.nanosec / 1e9);
 
@@ -136,26 +137,45 @@ public:
       }
 
 
-      for (int i = 0 ; i < cloud->points.size(); i++) {
+      Pose pose_before;
+      Pose pose_after;
+      Pose pose;
 
-        Pose pose_before;
-        Pose pose_after;
+      if (!BaseTools::get_before_after_pose(pose_before, pose_after, reference_time, cache)) {
+        return;
+      }
+      Pose ref_pose = BaseTools::interpolatePose(pose_before, pose_after, reference_time);
+      Eigen::Isometry3d T_ref = Eigen::Isometry3d::Identity();
+      Eigen::Isometry3d T_point = Eigen::Isometry3d::Identity();
 
-        double timestamp = cloud->points.at(i).timestamp;
-        if (!BaseTools::get_before_after_pose(pose_before, pose_after, timestamp, cache)) {
-          continue;
+      T_ref.translate(ref_pose.position);
+      T_ref.rotate(ref_pose.orientation);
+      
+      // 相对变换：从点时刻到参考时刻
+      Eigen::Isometry3d T_rel;
+
+      int ind = 0;
+      for (auto& point : cloud->points) {
+        if (ind++ % 520 == 0) {
+          double timestamp = point.timestamp;
+          if (!BaseTools::get_before_after_pose(pose_before, pose_after, timestamp, cache)) {
+            continue;
+          }
+          pose = BaseTools::interpolatePose(pose_before, pose_after, timestamp);
+          T_point.translate(pose.position);
+          T_point.rotate(pose.orientation);
+
+          T_rel = T_ref.inverse() * T_point;
         }
 
-        std::cout << "pose before:   " << pose_before.timestamp << std::endl;
-        std::cout << "pose after:   " << pose_after.timestamp << std::endl;
-        std::cout << "timestamp:   " << timestamp << std::endl;
+        // 应用变换
+        Eigen::Vector3d original_point(point.x, point.y, point.z);
+        Eigen::Vector3d compensated_point = T_rel * original_point;
 
-        std::exit(-1);
-
-
+        point.x = compensated_point(0);
+        point.y = compensated_point(1);
+        point.z = compensated_point(2);
       }
-
-
 
       // std::ostringstream oss;
       // oss << std::fixed << std::setprecision(6) << reference_time;
@@ -167,6 +187,7 @@ public:
   bool lla_initialed = false;
   Eigen::Vector3d init_lla = Eigen::Vector3d(0.0, 0.0, 0.0);
 
+  Eigen::Matrix4d T_vl;
   rclcpp::Subscription<novatel_oem7_msgs::msg::INSPVAX>::SharedPtr ins_sub_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr lidar_sub_;
 
