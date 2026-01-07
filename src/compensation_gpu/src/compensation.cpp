@@ -224,11 +224,6 @@ public:
 
       transformPointsGPU(h_points.data(), h_results.data(), h_T_wv.data(), h_T_vl.data(),  h_T_lw.data(), 624000, 1200, 520);
 
-
-
-
-
-
       // pcl::io::savePCDFileASCII("/home/zhouwang/dataset/output1.pcd", *cloud);
       for (int i = 0; i < point_size; i++) {
         auto& point = cloud->points.at(i);
