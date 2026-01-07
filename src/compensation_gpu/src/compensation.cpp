@@ -120,8 +120,7 @@ public:
 
   void lidar_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
 
-      // rclcpp::Time ros_time = this->get_clock()->now(); // 获取当前 ROS 时间
-      // RCLCPP_INFO(this->get_logger(), "Current ROS Time: %f", ros_time.seconds());
+
       
       if (SingletonDataBuffer::getInstance()._ins_buffer.cache.size() < 80) {
         return;
@@ -129,6 +128,9 @@ public:
 
       pcl::PointCloud<PointXYZIRT>::Ptr cloud(new pcl::PointCloud<PointXYZIRT>);
       pcl::fromROSMsg(*msg, *cloud);
+
+
+
 
       int point_size = cloud->points.size();
 
@@ -145,16 +147,16 @@ public:
         cache = SingletonDataBuffer::getInstance()._ins_buffer.cache;
       }
 
-      RCLCPP_INFO(this->get_logger(), "start ins time: %f", cache[0]._timestamp);
-      RCLCPP_INFO(this->get_logger(), "end ins time: %f", cache[cache.size() - 1]._timestamp);
-      RCLCPP_INFO(this->get_logger(), "lidar last point time: %f", reference_time);
+      // RCLCPP_INFO(this->get_logger(), "start ins time: %f", cache[0]._timestamp);
+      // RCLCPP_INFO(this->get_logger(), "end ins time: %f", cache[cache.size() - 1]._timestamp);
+      // RCLCPP_INFO(this->get_logger(), "lidar last point time: %f", reference_time);
 
       Pose pose_before;
       Pose pose_after;
       Pose pose;
 
       if (!BaseTools::get_before_after_pose(pose_before, pose_after, reference_time, cache)) {
-        RCLCPP_ERROR(this->get_logger(), "Lidar time and ins time not alignment, compenation failed");
+        // RCLCPP_ERROR(this->get_logger(), "Lidar time and ins time not alignment, compenation failed");
         return;
       }
       Pose ref_pose = BaseTools::interpolatePose(pose_before, pose_after, reference_time);
@@ -186,8 +188,12 @@ public:
         h_T_lw[i*4 + 2] = T_ref_lw(i, 2);
         h_T_lw[i*4 + 3] = T_ref_lw(i, 3);
       }
-      RCLCPP_INFO(this->get_logger(), "DEBUG HERE0");
-      for (int i = 0; i < point_size; i++) {
+
+
+      rclcpp::Time ros_time = this->get_clock()->now(); // 获取当前 ROS 时间
+      RCLCPP_INFO(this->get_logger(), "start ROS Time: %f", ros_time.seconds());
+
+      for (int i = 0; i < point_size; i++) { 
         auto& point = cloud->points.at(i);
         h_points[i*3] = point.x;
         h_points[i*3 + 1] = point.y;
@@ -195,7 +201,7 @@ public:
         if (i % 520 == 0) {
           double timestamp = point.timestamp;
           if (!BaseTools::get_before_after_pose(pose_before, pose_after, timestamp, cache)) {
-            RCLCPP_ERROR(this->get_logger(), "Lidar time and ins time not alignment, compenation failed");
+            // RCLCPP_ERROR(this->get_logger(), "Lidar time and ins time not alignment, compenation failed");
             return;
           }
           pose = BaseTools::interpolatePose(pose_before, pose_after, timestamp);          
@@ -211,8 +217,16 @@ public:
         }
       }
 
-      RCLCPP_INFO(this->get_logger(), "DEBUG HERE1");
+
+      rclcpp::Time ros_time2 = this->get_clock()->now(); // 获取当前 ROS 时间
+      RCLCPP_INFO(this->get_logger(), "end ROS Time: %f", ros_time2.seconds());
+
+
       transformPointsGPU(h_points.data(), h_results.data(), h_T_wv.data(), h_T_vl.data(),  h_T_lw.data(), 624000, 1200, 520);
+
+
+
+
 
 
       // pcl::io::savePCDFileASCII("/home/zhouwang/dataset/output1.pcd", *cloud);
@@ -223,6 +237,8 @@ public:
         point.z = h_results[i*3 + 2];
       }
 
+
+      
       // pcl::io::savePCDFileASCII("/home/zhouwang/dataset/output2.pcd", *cloud);
   }
 
