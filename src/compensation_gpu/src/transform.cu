@@ -1,6 +1,5 @@
 #include <cuda_runtime.h>
 #include <iostream>
-#include <Eigen/Dense>
 
 
 __global__ void transformPoints(float* d_points, float* d_results, float* d_T_wv, float* d_T_vl, float* d_T_lw, int numPoints, int ring_num) {
@@ -11,7 +10,9 @@ __global__ void transformPoints(float* d_points, float* d_results, float* d_T_wv
         float Y_l = d_points[idx*3 + 1];
         float Z_l = d_points[idx*3 + 2];
 
-        float T_wv[16] = &d_T_wv[idx / 520 * 16];
+        float T_wv[12] = {d_T_wv[idx / 520 * 12], d_T_wv[idx / 520 * 12 + 1], d_T_wv[idx / 520 * 12 + 2], d_T_wv[idx / 520 * 12 + 3],
+                          d_T_wv[idx / 520 * 12 + 4], d_T_wv[idx / 520 * 12 + 5], d_T_wv[idx / 520 * 12 + 6], d_T_wv[idx / 520 * 12 + 7],
+                          d_T_wv[idx / 520 * 12 + 8], d_T_wv[idx / 520 * 12 + 9], d_T_wv[idx / 520 * 12 + 10], d_T_wv[idx / 520 * 12 + 11]};
 
         // Lidar to Vechile
         float X_v = d_T_vl[0] * X_l + d_T_vl[1] * Y_l + d_T_vl[2] * Z_l + d_T_vl[3];
@@ -42,14 +43,14 @@ extern "C" void transformPointsGPU(float* h_points, float* h_results, float* h_T
 
 
     size_t pointsSize = numPoints * 3 * sizeof(float);
-    size_t matricesSize1 = timestamp_size * 16 * sizeof(float); 
-    size_t matricesSize2 = 16 * sizeof(float); 
+    size_t matricesSize1 = timestamp_size * 12 * sizeof(float); 
+    size_t matricesSize2 = 12 * sizeof(float); 
 
     cudaMalloc(&d_points, pointsSize);
     cudaMalloc(&d_results, pointsSize);
     cudaMalloc(&d_T_wv, matricesSize1);
     cudaMalloc(&d_T_vl, matricesSize2);
-    cudaMalloc(&h_T_lw, matricesSize2);
+    cudaMalloc(&d_T_lw, matricesSize2);
 
     cudaMemcpy(d_points, h_points, pointsSize, cudaMemcpyHostToDevice);
     cudaMemcpy(d_T_wv, h_T_wv, matricesSize1, cudaMemcpyHostToDevice);

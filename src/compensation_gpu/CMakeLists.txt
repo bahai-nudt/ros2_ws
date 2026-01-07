@@ -39,7 +39,7 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 # 添加可执行文件并链接PCL库
-cuda_add_executable(lidar_compensation src/compensation.cpp)
+cuda_add_executable(lidar_compensation src/compensation.cpp src/transform.cu)
 target_link_libraries(lidar_compensation ${PCL_LIBRARIES} ${PROJ_LIBRARIES})
 
 ament_target_dependencies(lidar_compensation 

@@ -10,6 +10,8 @@
 
 #include "base_utils/coordinate.h"
 #include <pcl/io/ply_io.h>
+#include <pcl/io/pcd_io.h>
+
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -143,6 +145,9 @@ public:
         cache = SingletonDataBuffer::getInstance()._ins_buffer.cache;
       }
 
+      RCLCPP_INFO(this->get_logger(), "start ins time: %f", cache[0]._timestamp);
+      RCLCPP_INFO(this->get_logger(), "end ins time: %f", cache[cache.size() - 1]._timestamp);
+      RCLCPP_INFO(this->get_logger(), "lidar last point time: %f", reference_time);
 
       Pose pose_before;
       Pose pose_after;
@@ -161,28 +166,28 @@ public:
 
       
       // 准备gpu数据
-      std::vector<float> h_points(cloud->points.size() * 3);
-      std::vector<float> h_results(cloud->points.size() * 3); 
+      std::vector<float> h_points(point_size * 3);
+      std::vector<float> h_results(point_size * 3); 
 
-      std::vector<float> h_T_wv(1200 * 16, 0); // 共有62400 个点， 520个点时间戳一致，需要 1200个转移矩阵
-      std::vector<float> h_T_vl(16, 0);
-      std::vector<float> h_T_lw(16, 0);
+      std::vector<float> h_T_wv(1200 * 12, 0); // 共有62400 个点， 520个点时间戳一致，需要 1200个转移矩阵
+      std::vector<float> h_T_vl(12, 0);
+      std::vector<float> h_T_lw(12, 0);
 
-      for (int i = 0; i < 4; i++) {
+      for (int i = 0; i < 3; i++) {
         h_T_vl[i*4] = T_vl(i, 0);
         h_T_vl[i*4 + 1] = T_vl(i, 1);
         h_T_vl[i*4 + 2] = T_vl(i, 2);
         h_T_vl[i*4 + 3] = T_vl(i, 3);
       }
 
-      for (int i = 0; i < 4; i++) {
+      for (int i = 0; i < 3; i++) {
         h_T_lw[i*4] = T_ref_lw(i, 0);
         h_T_lw[i*4 + 1] = T_ref_lw(i, 1);
         h_T_lw[i*4 + 2] = T_ref_lw(i, 2);
         h_T_lw[i*4 + 3] = T_ref_lw(i, 3);
       }
-
-      for (int i = 0; i < cloud->points.size(); i++) {
+      RCLCPP_INFO(this->get_logger(), "DEBUG HERE0");
+      for (int i = 0; i < point_size; i++) {
         auto& point = cloud->points.at(i);
         h_points[i*3] = point.x;
         h_points[i*3 + 1] = point.y;
@@ -197,29 +202,34 @@ public:
           Eigen::Matrix3d R = pose.orientation.toRotationMatrix();
           
           int col_num = i / 520;
-          for (int j = 0; j < 4; j++) {
-            h_T_wv[i*16 + j*4] = R(i, 0);
-            h_T_wv[i*16 + j*4 + 1] = R(i, 1);
-            h_T_wv[i*16 + j*4 + 2] = R(i, 2);
-            h_T_wv[i*16 + j*4 + 3] = pose.position(i);
+          for (int j = 0; j < 3; j++) {
+            h_T_wv[col_num*12 + j*4] = R(j, 0);
+            h_T_wv[col_num*12 + j*4 + 1] = R(j, 1);
+            h_T_wv[col_num*12 + j*4 + 2] = R(j, 2);
+            h_T_wv[col_num*12 + j*4 + 3] = pose.position(j);
           }
         }
       }
 
+      RCLCPP_INFO(this->get_logger(), "DEBUG HERE1");
       transformPointsGPU(h_points.data(), h_results.data(), h_T_wv.data(), h_T_vl.data(),  h_T_lw.data(), 624000, 1200, 520);
 
+
+      // pcl::io::savePCDFileASCII("/home/zhouwang/dataset/output1.pcd", *cloud);
       for (int i = 0; i < point_size; i++) {
         auto& point = cloud->points.at(i);
         point.x = h_results[i*3];
         point.y = h_results[i*3 + 1];
         point.z = h_results[i*3 + 2];
       }
+
+      // pcl::io::savePCDFileASCII("/home/zhouwang/dataset/output2.pcd", *cloud);
   }
 
   bool lla_initialed = false;
   Eigen::Vector3d init_lla = Eigen::Vector3d(0.0, 0.0, 0.0);
 
-  Eigen::Matrix4d T_vl;
+  Eigen::Matrix4d T_vl = Eigen::Matrix4d::Identity();
   rclcpp::Subscription<novatel_oem7_msgs::msg::INSPVAX>::SharedPtr ins_sub_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr lidar_sub_;
 
