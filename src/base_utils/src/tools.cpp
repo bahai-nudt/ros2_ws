@@ -61,4 +61,35 @@ bool get_before_after_pose(Pose& pose_before, Pose& pose_after, double timestamp
     }
 }
 
+
+bool get_before_after_pose(Pose& pose_before, Pose& pose_after, double timestamp, const std::vector<Pose>& deque_ins) {
+    int size = static_cast<int>(deque_ins.size());
+
+    if (size == 0) {
+        return false;
+    }
+
+    if (timestamp > deque_ins[size - 1].timestamp || timestamp < deque_ins[0].timestamp) {
+        return false;
+    }
+
+    for (int i = size - 1; i > 0; i--) {
+        if (deque_ins[i].timestamp > timestamp) {
+            continue;
+        }
+
+        if (i >= size - 1) {
+            return false;
+        }
+        if (deque_ins[i+1].timestamp - deque_ins[i].timestamp > 18 * 1e-3 || deque_ins[i+1].timestamp < timestamp ) {
+            return false;
+        }
+
+        pose_before = deque_ins[i];
+        pose_after = deque_ins[i+1];
+
+        return true;
+    }
+}
+
 };
