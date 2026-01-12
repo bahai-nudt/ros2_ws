@@ -43,6 +43,8 @@ __device__ void slerp(float* q0, float* q1, float* result, float t) {
 
     float dot_val = dot(q0, q1);
 
+
+
     if (dot_val < 0.0f) {
         q1[0] = -q1[0];
         q1[1] = -q1[1];
@@ -56,6 +58,9 @@ __device__ void slerp(float* q0, float* q1, float* result, float t) {
     float theta = theta_0 * t;
 
     // 对于内积接近1的情况，使用线性插值来避免精度问题
+
+
+
     if (dot_val > THRESHOLD) {
         // 线性插值
         float result_quat[4];
@@ -116,16 +121,38 @@ __global__ void transformPoints_OFFLINE(float* d_points, float* d_results, float
         float Z_l = d_points[idx*4 + 2];
         float timestamp = d_points[idx*4 + 3];
 
+
+
+
         float pose_before[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
         float pose_after[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
         // find before pose and after pose
         for (int i = 0; i < 15; i++) {
-            if (timestamp > d_ins_pose[i*8 + 7]) {
-                pose_before[0] = d_ins_pose[i*8]; pose_before[1] = d_ins_pose[i*8 + 1]; pose_before[2] = d_ins_pose[i*8 + 2]; pose_before[3] = d_ins_pose[i*8 + 3];
-                pose_before[4] = d_ins_pose[i*8 + 4]; pose_before[5] = d_ins_pose[i*8 + 5]; pose_before[6] = d_ins_pose[i*8 + 6]; pose_before[7] = d_ins_pose[i*8 + 7];
+
+
+            // if (idx == 0) {
+                // printf("pts[0]=%f %f %f\n", pose_before[0], pose_before[1], pose_before[2]);
+                // printf("pts[0]=%f\n", timestamp);
+                // printf("pts[1]=%i\n", i);
+                // printf("pts[0]=%f\n", d_ins_pose[i*8 + 1]);
+                // printf("pts[0]=%f\n", d_ins_pose[i*8 + 2]);
+                // printf("pts[0]=%f\n", d_ins_pose[i*8 + 3]);
+                // printf("pts[0]=%f\n", d_ins_pose[i*8 + 4]);
+                // printf("pts[0]=%f\n", d_ins_pose[i*8 + 5]);
+                // printf("pts[0]=%f\n", d_ins_pose[i*8 + 6]);
+                // printf("pts[2]=%f\n", d_ins_pose[i*8 + 7]);
+            // }
+
+            if (timestamp < d_ins_pose[i*8 + 7]) {
+
+
+                pose_before[0] = d_ins_pose[(i-1)*8]; pose_before[1] = d_ins_pose[(i-1)*8 + 1]; pose_before[2] = d_ins_pose[(i-1)*8 + 2]; pose_before[3] = d_ins_pose[(i-1)*8 + 3];
+                pose_before[4] = d_ins_pose[(i-1)*8 + 4]; pose_before[5] = d_ins_pose[(i-1)*8 + 5]; pose_before[6] = d_ins_pose[(i-1)*8 + 6]; pose_before[7] = d_ins_pose[(i-1)*8 + 7];
 
                 pose_after[0] = d_ins_pose[i*8]; pose_after[1] = d_ins_pose[i*8 + 1]; pose_after[2] = d_ins_pose[i*8 + 2]; pose_after[3] = d_ins_pose[i*8 + 3];
                 pose_after[4] = d_ins_pose[i*8 + 4]; pose_after[5] = d_ins_pose[i*8 + 5]; pose_after[6] = d_ins_pose[i*8 + 6]; pose_after[7] = d_ins_pose[i*8 + 7];
+
+                break;
             }
         }
 
@@ -138,6 +165,9 @@ __global__ void transformPoints_OFFLINE(float* d_points, float* d_results, float
         float x = result[1];
         float y = result[2];
         float z = result[3];
+
+
+
 
         float R[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
         float position[3] = {0.0, 0.0, 0.0};
@@ -153,8 +183,11 @@ __global__ void transformPoints_OFFLINE(float* d_points, float* d_results, float
         R[8] = 1.0f - 2.0f * (x * x + y * y);
 
         position[0] = (1-t)*pose_before[0] + t*pose_after[0];
-        position[1] = (1-t)*pose_before[0] + t*pose_after[0];
-        position[2] = (1-t)*pose_before[0] + t*pose_after[0];
+        position[1] = (1-t)*pose_before[1] + t*pose_after[1];
+        position[2] = (1-t)*pose_before[2] + t*pose_after[2];
+
+
+
 
 
         // Lidar to Vechile
@@ -162,15 +195,26 @@ __global__ void transformPoints_OFFLINE(float* d_points, float* d_results, float
         float Y_v = d_T_vl[4] * X_l + d_T_vl[5] * Y_l + d_T_vl[6] * Z_l + d_T_vl[7];
         float Z_v = d_T_vl[8] * X_l + d_T_vl[9] * Y_l + d_T_vl[10] * Z_l + d_T_vl[11];
 
+
+
+
+
         // Vechicle to world
         float X_w = R[0] * X_v + R[1] * Y_v + R[2] * Z_v + position[0];
         float Y_w = R[3] * X_v + R[4] * Y_v + R[5] * Z_v + position[1];
         float Z_w = R[6] * X_v + R[7] * Y_v + R[8] * Z_v + position[2];
 
+
+
+
         // World to l
         d_results[idx*3] = d_T_lw[0] * X_w + d_T_lw[1] * Y_w + d_T_lw[2] * Z_w + d_T_lw[3];
         d_results[idx*3 + 1] = d_T_lw[4] * X_w + d_T_lw[5] * Y_w + d_T_lw[6] * Z_w + d_T_lw[7];
         d_results[idx*3 + 2] = d_T_lw[8] * X_w + d_T_lw[9] * Y_w + d_T_lw[10] * Z_w + d_T_lw[11];
+
+
+
+
     }
 }
 
@@ -230,7 +274,7 @@ extern "C" void transformPointsGPU_OFFLINE(float* h_points, float* h_results, fl
     size_t resultSize = numPoints * 3 * sizeof(float);
 
     size_t matricesSize = 12 * sizeof(float); 
-    size_t poseSize = 15 * 13 * sizeof(float);
+    size_t poseSize = 15 * 8 * sizeof(float);
 
     cudaMalloc(&d_points, pointsSize);
     cudaMalloc(&d_results, resultSize);

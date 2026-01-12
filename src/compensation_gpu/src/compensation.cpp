@@ -28,6 +28,7 @@
 #include <mutex>
 #include <iomanip>
 #include <fstream>
+#include <thread>
 
 
 extern "C" void transformPointsGPU(float* h_points, float* h_results, float* h_T_wv, float* h_T_vl,  float* h_T_lw, int numPoints, int timestamp_size, int ring_num);
@@ -266,9 +267,15 @@ public:
 };
 
 
-void lidar_compensation(pcl::PointCloud<PointXYZTRI>::Ptr cloud, const std::vector<Pose>& vec_ins, double reference_time) {
+void lidar_compensation(pcl::PointCloud<PointXYZTRI>::Ptr cloud, const std::vector<Pose>& vec_ins, double reference_time, const Eigen::Matrix4d& T_vl) {
 
-      Eigen::Matrix4d T_vl = Eigen::Matrix4d::Identity();
+
+
+      auto now4 = std::chrono::system_clock::now();
+      auto timestamp4 = std::chrono::duration_cast<std::chrono::milliseconds>(now4.time_since_epoch()).count();
+      std::cout << "当前时间戳: " << std::setprecision(13) << timestamp4 * 1e-3<< std::endl;
+
+      // Eigen::Matrix4d T_vl = Eigen::Matrix4d::Identity();
       int point_size = cloud->points.size();
       double start_time = std::min(cloud->points.at(0).timestamp, reference_time);
       double end_time = std::max(cloud->points.at(point_size - 1).timestamp, reference_time);
@@ -284,22 +291,29 @@ void lidar_compensation(pcl::PointCloud<PointXYZTRI>::Ptr cloud, const std::vect
         if (vec_ins[i].timestamp > start_time) {
           start_ind = i - 1;
           end_ind = start_ind + 15;
+          break;
         }
       }
 
       std::vector<float> h_ins_pose(15 * 8, 0.0); // t, (w,x,y,z) , timestamp;
+
+      int foo_ind = 0;
       for (int i = start_ind; i < end_ind; i++) {
         const Pose& pose = vec_ins[i];
-        h_ins_pose[i * 8] = pose.position(0);
-        h_ins_pose[i * 8 + 1] = pose.position(1);
-        h_ins_pose[i * 8 + 2] = pose.position(2);
+        
+        h_ins_pose[foo_ind * 8] = pose.position(0);
+        h_ins_pose[foo_ind * 8 + 1] = pose.position(1);
+        h_ins_pose[foo_ind * 8 + 2] = pose.position(2);
 
-        h_ins_pose[i*8 + 3] = pose.orientation.w();
-        h_ins_pose[i*8 + 4] = pose.orientation.x();
-        h_ins_pose[i*8 + 5] = pose.orientation.y();
-        h_ins_pose[i*8 + 6] = pose.orientation.z();
-        h_ins_pose[i*8 + 7] = static_cast<float>(pose.timestamp - reference_time);
+        h_ins_pose[foo_ind*8 + 3] = pose.orientation.w();
+        h_ins_pose[foo_ind*8 + 4] = pose.orientation.x();
+        h_ins_pose[foo_ind*8 + 5] = pose.orientation.y();
+        h_ins_pose[foo_ind*8 + 6] = pose.orientation.z();
+        h_ins_pose[foo_ind*8 + 7] = static_cast<float>(pose.timestamp - reference_time);
+
+        foo_ind++;
       }
+
 
       Pose pose_before;
       Pose pose_after;
@@ -317,8 +331,8 @@ void lidar_compensation(pcl::PointCloud<PointXYZTRI>::Ptr cloud, const std::vect
 
       
       // 准备gpu数据
-      std::vector<float> h_points(point_size * 3);
-      std::vector<float> h_results(point_size * 4); 
+      std::vector<float> h_points(point_size * 4);
+      std::vector<float> h_results(point_size * 3); 
 
       std::vector<float> h_T_vl(12, 0);
       std::vector<float> h_T_lw(12, 0);
@@ -345,7 +359,25 @@ void lidar_compensation(pcl::PointCloud<PointXYZTRI>::Ptr cloud, const std::vect
         h_points[i*4 + 3] = point.timestamp - reference_time;
       }
 
+
+      auto now = std::chrono::system_clock::now();
+    
+      // 转换为时间戳（单位：秒）
+      auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    
+      // 打印时间戳
+      std::cout << "当前时间戳: " << timestamp * 1e-3<< std::endl;
+
+
       transformPointsGPU_OFFLINE(h_points.data(), h_results.data(), h_T_vl.data(), h_T_lw.data(), h_ins_pose.data(), point_size);
+
+      auto now2 = std::chrono::system_clock::now();
+    
+      // 转换为时间戳（单位：秒）
+      auto timestamp2 = std::chrono::duration_cast<std::chrono::milliseconds>(now2.time_since_epoch()).count();
+    
+      // 打印时间戳
+      std::cout << "当前时间戳: " << timestamp2 *1e-3<< std::endl;
 
       for (int i = 0; i < point_size; i++) {
         auto& point = cloud->points.at(i);
@@ -353,6 +385,19 @@ void lidar_compensation(pcl::PointCloud<PointXYZTRI>::Ptr cloud, const std::vect
         point.y = h_results[i*3 + 1];
         point.z = h_results[i*3 + 2];
       }
+      auto now3 = std::chrono::system_clock::now();
+    
+      // 转换为时间戳（单位：秒）
+      auto timestamp3 = std::chrono::duration_cast<std::chrono::milliseconds>(now3.time_since_epoch()).count();
+    
+      // 打印时间戳
+      std::cout << "当前时间戳: " << timestamp3*1e-3<< std::endl;
+
+      std::cout << "-------------------------------------------------------------------" << std::endl;
+
+
+
+
 }
 
 
@@ -363,7 +408,7 @@ std::vector<Pose> load_ins(std::string file_path) {
     }
 
     Eigen::Vector3d init_lla = Eigen::Vector3d(0.0, 0.0, 0.0);
-    lla_initialed = false;
+    bool lla_initialed = false;
 
     // 跳过文件头部（第一行）
     std::string header_line;
@@ -376,24 +421,25 @@ std::vector<Pose> load_ins(std::string file_path) {
     while (std::getline(file, line)) {
         std::istringstream stream(line);
 
+        Ins ins;
         stream >> ins._timestamp >> ins._latitude >> ins._longitude >> ins._altitude >> ins._roll >> ins._pitch >> ins._azimuth;
-        ins._timestamp =/ 1e6;
+        ins._timestamp = ins._timestamp / 1e6;
 
         if (!lla_initialed) {
           init_lla << ins._longitude, ins._latitude, ins._altitude;
           lla_initialed = true;
-          return ;
+          continue;
         }
 
         std::vector<double> local_enu = Coordinate::lla2enu(init_lla(0), init_lla(1), init_lla(2), ins._longitude, ins._latitude, ins._altitude);
-        double yaw = 90.0 - msg->azimuth;
+        double yaw = 90.0 - ins._azimuth;
 
         // 规范化到 [0, 360) 范围
         while (yaw < 0.0) yaw += 360.0;
         while (yaw >= 360.0) yaw -= 360.0;
 
-        Eigen::AngleAxisd rollAngle(msg->roll / 180 * M_PI, Eigen::Vector3d::UnitY());
-        Eigen::AngleAxisd pitchAngle(msg->pitch / 180 * M_PI, Eigen::Vector3d::UnitX());
+        Eigen::AngleAxisd rollAngle(ins._roll / 180 * M_PI, Eigen::Vector3d::UnitY());
+        Eigen::AngleAxisd pitchAngle(ins._pitch / 180 * M_PI, Eigen::Vector3d::UnitX());
         Eigen::AngleAxisd yawAngle(yaw / 180 * M_PI, Eigen::Vector3d::UnitZ());
 
         Eigen::Quaterniond q = yawAngle * pitchAngle * rollAngle;
@@ -405,6 +451,18 @@ std::vector<Pose> load_ins(std::string file_path) {
     file.close();
 
     return vec_ins;
+}
+
+
+void func(int start, int end, const std::vector<std::string>& file_name, const std::vector<double>& reference_times, const Eigen::Matrix4d& T_vl, const std::vector<Pose>& vec_ins) {
+    for (int i = start; i < end; i++) {
+      pcl::PointCloud<PointXYZTRI>::Ptr cloud(new pcl::PointCloud<PointXYZTRI>());
+      pcl::io::loadPCDFile<PointXYZTRI>("/home/zhouwang/dataset/raw_data/lidar_front/" + file_name[i] + ".pcd", *cloud);
+      lidar_compensation(cloud, vec_ins, reference_times[i]*1e-6, T_vl);
+
+      pcl::io::savePCDFileASCII("/home/zhouwang/dataset/raw_data/lidar_front/" + file_name[i] + "_.pcd", *cloud);
+
+    }
 }
 
 int main(int argc, char * argv[])
@@ -420,14 +478,246 @@ int main(int argc, char * argv[])
     } else {
       // 加载ins
       std::vector<Pose> vec_ins = load_ins("/home/zhouwang/dataset/raw_data/ins.txt");
-      pcl::PointCloud<PointXYZTRI>::Ptr cloud(new pcl::PointCloud<PointXYZTRI>());
-      pcl::io::loadPCDFile<PointXYZTRI>("/home/zhouwang/dataset/1766304294799853.pcd", *cloud);
 
-      double reference_time = static_cast<double>(1766304294799853) / 1e6;
-      lidar_compensation(cloud, vec_ins, reference_time);
+    
+      Eigen::Matrix4d T_vl = Eigen::Matrix4d::Identity();
+
+// 5.15, 1.15, 1.98
+
+      T_vl << 0.999992, -1.88427e-05, -0.00401438, 7.04 - 5.15,
+          -1.81899e-12, 0.999989, -0.00469375, -9.31323e-10 - 1.15,
+          0.00401443, 0.00469371, 0.999981, 2.2 - 1.98,
+          -0.0, 0.0, -0.0, 1.0;
 
 
-      pcl::io::savePCDFileASCII("/home/zhouwang/dataset/1766304294799853_.pcd", *cloud);
+      std::vector<double> reference_times = {
+1766298055800073,
+1766298055900046,
+1766298056000201,
+1766298056100108,
+1766298056200016,
+1766298056299979,
+1766298056399966,
+1766298056499982,
+1766298056599944,
+1766298056699954,
+1766298056799942,
+1766298056899900,
+1766298056999846,
+1766298057099822,
+1766298057199826,
+1766298057299918,
+1766298057399910,
+1766298057499919,
+1766298057599917,
+1766298057699918,
+1766298057799846,
+1766298057899832,
+1766298057999810,
+1766298058099792,
+1766298058199713,
+1766298058299482,
+1766298058399484,
+1766298058499616,
+1766298058599627,
+1766298058699648,
+1766298058799644,
+1766298058899482,
+1766298058999436,
+1766298059099426,
+1766298059199477,
+1766298059299510,
+1766298059399590,
+1766298059499632,
+1766298059599685,
+1766298059699806,
+1766298059799628,
+1766298059899657,
+1766298059999671,
+1766298060099784,
+1766298060199795,
+1766298060299808,
+1766298060399838,
+1766298060399838,
+1766298060499974,
+1766298060599773,
+1766298060699800,
+1766298060799816,
+1766298060899950,
+1766298060999969,
+1766298061099979,
+1766298061199988,
+1766298061300040,
+1766298061400028,
+1766298061500030,
+1766298061600049,
+1766298061700107,
+1766298061800127,
+1766298061900175,
+1766298062000228,
+1766298062100334,
+1766298062200351,
+1766298062300392,
+1766298062400384,
+1766298062500288,
+1766298062600394,
+1766298062700354,
+1766298062800326,
+1766298062900358,
+1766298063000332,
+1766298063100528,
+1766298063200461,
+1766298063300329,
+1766298063400384,
+1766298063500325,
+1766298063600273,
+1766298063700217,
+1766298063800324,
+1766298063900305,
+1766298064000273,
+1766298064100239,
+1766298064200165,
+1766298064300331,
+1766298064400298,
+1766298064500262,
+1766298064600200,
+1766298064700177,
+1766298064800145,
+1766298064900097,
+1766298065000032,
+1766298065100028,
+1766298065200021,
+1766298065300065,
+1766298065400014,
+1766298065500041,
+1766298065600039
+      };
+
+      std::vector<std::string> file_name = {
+        "1766298055800073",
+"1766298055900046",
+"1766298056000201",
+"1766298056100108",
+"1766298056200016",
+"1766298056299979",
+"1766298056399966",
+"1766298056499982",
+"1766298056599944",
+"1766298056699954",
+"1766298056799942",
+"1766298056899900",
+"1766298056999846",
+"1766298057099822",
+"1766298057199826",
+"1766298057299918",
+"1766298057399910",
+"1766298057499919",
+"1766298057599917",
+"1766298057699918",
+"1766298057799846",
+"1766298057899832",
+"1766298057999810",
+"1766298058099792",
+"1766298058199713",
+"1766298058299482",
+"1766298058399484",
+"1766298058499616",
+"1766298058599627",
+"1766298058699648",
+"1766298058799644",
+"1766298058899482",
+"1766298058999436",
+"1766298059099426",
+"1766298059199477",
+"1766298059299510",
+"1766298059399590",
+"1766298059499632",
+"1766298059599685",
+"1766298059699806",
+"1766298059799628",
+"1766298059899657",
+"1766298059999671",
+"1766298060099784",
+"1766298060199795",
+"1766298060299808",
+"1766298060399838",
+"1766298060399838",
+"1766298060499974",
+"1766298060599773",
+"1766298060699800",
+"1766298060799816",
+"1766298060899950",
+"1766298060999969",
+"1766298061099979",
+"1766298061199988",
+"1766298061300040",
+"1766298061400028",
+"1766298061500030",
+"1766298061600049",
+"1766298061700107",
+"1766298061800127",
+"1766298061900175",
+"1766298062000228",
+"1766298062100334",
+"1766298062200351",
+"1766298062300392",
+"1766298062400384",
+"1766298062500288",
+"1766298062600394",
+"1766298062700354",
+"1766298062800326",
+"1766298062900358",
+"1766298063000332",
+"1766298063100528",
+"1766298063200461",
+"1766298063300329",
+"1766298063400384",
+"1766298063500325",
+"1766298063600273",
+"1766298063700217",
+"1766298063800324",
+"1766298063900305",
+"1766298064000273",
+"1766298064100239",
+"1766298064200165",
+"1766298064300331",
+"1766298064400298",
+"1766298064500262",
+"1766298064600200",
+"1766298064700177",
+"1766298064800145",
+"1766298064900097",
+"1766298065000032",
+"1766298065100028",
+"1766298065200021",
+"1766298065300065",
+"1766298065400014",
+"1766298065500041",
+"1766298065600039",
+      };
+
+
+      std::vector<int> start_idx = {0, 20, 40, 60, 80};
+      std::vector<int> end_idx = {20, 40, 60, 80, 100};
+
+
+    std::thread t0(func, start_idx[0], end_idx[0], file_name, reference_times, T_vl, vec_ins);
+    std::thread t1(func, start_idx[1], end_idx[1], file_name, reference_times, T_vl, vec_ins);
+    std::thread t2(func, start_idx[2], end_idx[2], file_name, reference_times, T_vl, vec_ins);
+    std::thread t3(func, start_idx[3], end_idx[3], file_name, reference_times, T_vl, vec_ins);
+    std::thread t4(func, start_idx[4], end_idx[4], file_name, reference_times, T_vl, vec_ins);
+    std::thread t5(func, start_idx[5], end_idx[5], file_name, reference_times, T_vl, vec_ins);
+
+
+    t0.join();
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+    t5.join();
+
+
+
 
 
     }
