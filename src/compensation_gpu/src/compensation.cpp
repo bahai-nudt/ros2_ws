@@ -708,18 +708,12 @@ int main(int argc, char * argv[])
     std::thread t4(func, start_idx[4], end_idx[4], file_name, reference_times, T_vl, vec_ins);
     std::thread t5(func, start_idx[5], end_idx[5], file_name, reference_times, T_vl, vec_ins);
 
-
     t0.join();
     t1.join();
     t2.join();
     t3.join();
     t4.join();
     t5.join();
-
-
-
-
-
     }
 
 
