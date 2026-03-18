@@ -98,7 +98,6 @@ public:
   void imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg)
   {
     ImuData imu_data;
-    
     imu_data._timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
     imu_data._accel << msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z;
     imu_data._gyro << msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z;
@@ -216,7 +215,7 @@ public:
     heading._timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
     heading._heading = msg->heading / 180.0 * M_PI;
 
-    // std::cout << "heading: " << msg->heading << std::endl;
+    //std::cout << "heading: " << msg->heading << std::endl;
 
     SingletonDataBuffer::getInstance()._heading_buffer.push(heading);
   }

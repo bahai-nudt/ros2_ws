@@ -2,14 +2,14 @@ import numpy as np
 import geographiclib.geodesic as geodesic
 
 # 参考点的经纬度和高度
-lat_ref = 39.9042   # 参考点纬度
-lon_ref = 116.4074  # 参考点经度
-alt_ref = 50.0      # 参考点高度
+lat_ref = 41.145555797   # 参考点纬度
+lon_ref = 118.213600830  # 参考点经度
+alt_ref = 690.793061562      # 参考点高度
 
 # 目标点的经纬度和高度
-lat = 39.9142       # 目标点纬度
-lon = 116.4075      # 目标点经度
-alt = 50.5          # 目标点高度
+lat = 41.145547467       # 目标点纬度
+lon = 118.213596806      # 目标点经度
+alt = 687.571310482          # 目标点高度
 
 # 使用 GeographicLib 库计算两个点的差值
 geod = geodesic.Geodesic.WGS84

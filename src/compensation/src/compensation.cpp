@@ -77,6 +77,7 @@ public:
 
   void ins_callback(const novatel_oem7_msgs::msg::INSPVAX::SharedPtr msg)
   {
+    std::cout << "ins callback" << std::endl;
       Ins ins;
       ins._longitude = msg->longitude;
       ins._latitude = msg->latitude;
@@ -195,12 +196,30 @@ public:
 
 int main(int argc, char * argv[])
 {
-    rclcpp::init(argc, argv);
-    rclcpp::executors::MultiThreadedExecutor executor;
-    auto node = std::make_shared<CompensationNode>();
-    executor.add_node(node);
-    executor.spin();
-    rclcpp::shutdown();
+
+    pcl::PointCloud<PointXYZIRT> cloud_with_timestamp;
+    if (pcl::io::loadPCDFile<PointXYZIRT>("/home/zhouwang/dataset/raw_data/lidar_front_undistort/1769052268499663.pcd", cloud_with_timestamp) == -1) {
+        PCL_ERROR("Couldn't read the file with timestamp data \n");
+        return -1;
+    }
+
+    // 遍历所有点，打印时间戳
+    int ind = 0;
+    for (const auto& point : cloud_with_timestamp.points) {
+      if (ind++ % 10000 != 0) {
+        continue;
+      } 
+        double timestamp = point.timestamp;  // 假设时间戳存储在 'intensity' 字段
+        std::cout << "Point Timestamp: " << std::setprecision(16) << timestamp << std::endl;
+    }
+
+
+    // rclcpp::init(argc, argv);
+    // rclcpp::executors::MultiThreadedExecutor executor;
+    // auto node = std::make_shared<CompensationNode>();
+    // executor.add_node(node);
+    // executor.spin();
+    // rclcpp::shutdown();
 
     return 0;
 }
