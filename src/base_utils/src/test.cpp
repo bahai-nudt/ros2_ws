@@ -43,9 +43,9 @@ int main() {
     
 
 
-  double lon0 = 118.216753093;
-  double lat0 = 41.14418117;
-  std::vector<double> enu = Coordinate::enu2lla(lon0, lat0, 686.148, -1173.54, 293.939, 12.808);
+  double lon0 = 110.030159954;
+  double lat0 = 38.62058299;
+  std::vector<double> enu = Coordinate::enu2lla(lon0, lat0, 1155.275982, 535.399803735,-1725.477218793,0);
 
   std::cout << std::setprecision(10) << enu[0] << std::endl;
   std::cout << std::setprecision(10) << enu[1] << std::endl;

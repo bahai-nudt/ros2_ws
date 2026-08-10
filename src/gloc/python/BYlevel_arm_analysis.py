@@ -23,7 +23,7 @@ def main():
 
     # 1773712717.094511032
 
-    lever_arm = np.array([-0.51, 1.65, 1.80])
+    lever_arm = np.array([-0.99, 1.4, 2.3])
 
     gps_heading = 301.389508431 / 180 * math.pi + math.pi / 2 - math.pi * 2 #32.270580292 / 180 * math.pi
     bynavx_azimuth = 301.389508431 / 180 * math.pi
