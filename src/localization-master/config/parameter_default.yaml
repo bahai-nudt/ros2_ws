@@ -1,0 +1,106 @@
+# 默认配置：Bynav GNSS + Bynav Heading + Bynav IMU
+# --- process_option：状态维数与量测 ---
+process_option:
+  state_dim: 15          # 15:无杆臂估计  18:估计杆臂
+  meas_dim: 3            # 1:pos  2:pos+vel  3:pos+vel+heading
+  max_process_duration_sec: 0.0  # <=0 处理完整数据
+
+# --- file：输入/输出目录 ---
+file:
+  input_data_dir: "/home/liyanjie/breton/POST_MSF/data/test/decode_cyber"
+  output_data_dir: "/home/liyanjie/breton/POST_MSF/data/test/output"
+
+# --- topics：解码 topic；imu_topic / lidar_topic 用于匹配 calib.json ---
+topics:
+  imu_topic: "/bynav/imu/data_raw"
+  bestgnsspos_topic: "/bynav/bestgnsspos"
+  bestvel_topic: "/bynav/bestvel"
+  heading2_topic: "/bynav/heading2"
+  lidar_topic: "/rslidar/em4_front/raw"
+
+# --- calibration：yaml 侧标定；车端外参见 calib.json ---
+calibration:
+  gloc_origin_lla_deg: [41.14418117, 118.216753093, 686.148]  # lat,lon,h
+  R_bv: [0.0, -1.0, 0.0,
+         1.0,  0.0, 0.0,
+         0.0,  0.0, 1.0]
+  heading_offset_deg: 0.0   # 左主右从=0，右主左从=180
+  lidar_imu_extrinsic:
+    enable: false             # true：覆盖 calib.json 中的雷达外参
+    # p_imu = R_bl * p_lidar + T_lb_m；旋转矩阵行优先
+    R_bl: [-0.009999626035198318, -0.9999323741152193,  0.005937564774990955,
+            0.9999292712108317,   -0.010037477933234683, -0.006379781541301452,
+            0.006438948278336138,  0.005873349388624536,  0.9999620211348169]
+    T_lb_m: [0.9355, 1.2085, 0.521]
+  imu_calib:
+    gyro_bias_dps: [0.0, 0.0, 0.0]
+    acc_bias_mg: [0.0, 0.0, 0.0]
+    gyro_scale_factor: [1.0, 1.0, 1.0]
+    acc_scale_factor: [1.0, 1.0, 1.0]
+
+# --- statistics：EKF 随机模型（P0/Q/R） ---
+statistics:
+  init:                   # P0
+    att_err_deg: [3.0, 3.0, 1.0]
+    vel_err_mps: [0.5, 0.5, 0.5]
+    pos_err_m: [1.0, 1.0, 3.0]
+    gyro_bias_err_dps: [0.5, 0.5, 0.5]
+    acc_bias_err_mg: [20.0, 20.0, 20.0]
+    lever_arm_err_m: [0.1, 0.1, 0.1]
+  process:                # Q
+    ang_random_walk: [0.10, 0.10, 0.13]         # deg/sqrt(h)
+    vel_random_walk: [60.0, 60.0, 60.0]         # ug/sqrt(Hz)
+    gyro_bias_noise: [1.8, 1.8, 1.4]            # deg/h/sqrt(h)
+    acc_bias_noise: [15.0, 15.0, 15.0]          # ug/sqrt(h)
+    lever_random_walk: [2.0e-4, 2.0e-4, 5.0e-5] # m/sqrt(s)
+  meas:                   # R / 观测噪声下限
+    gnss_fixed_pos_std_floor_m: [0.1, 0.05, 0.05]  # E,N,U
+    gnss_float_pos_std_floor_m: [0.5, 0.5, 1.0]
+    gnss_vel_meas_std_mps: [0.15, 0.15, 0.15]
+    heading_meas_std_floor_deg: 0.3
+    heading_meas_std_scale: 1.0
+
+# --- quality_control：量测门限与 ZUPT ---
+quality_control:
+  gnss_vel_min_speed_mps: 0.0
+  heading_meas_std_max_deg: 5.0
+  gnss_vel_u_only_hor_speed_mps: 0.0
+  max_no_valid_measure_sec: 10.0
+  zupt:
+    enable: true
+    meas_std_mps: [0.03, 0.03, 0.03]
+    static_hor_speed_mps: 0.03
+    static_ver_speed_mps: 0.03
+    static_ins_speed_mps: 0.10
+    static_ang_rate_dps: 1.0
+    min_duration_sec: 0.5
+
+# --- lidar：雷达前端 ---
+lidar:
+  init_mode: 0                 # 0=GNSS+heading  1=IMU静止均值
+  imu_init_samples: 100       # init_mode=1 时使用的 IMU 样本数
+  enable_undistort: true
+  frame_voxel_size: 0.5
+  map_voxel_size: 0.5
+  det_range: 100.0
+  cube_len: 1000.0
+  iterated_update_noise_var: 0.001
+  iekf_convergence_threshold: 0.001
+  nearest_search_max_sq_dist: 5.0
+  plane_fit_threshold_m: 0.1
+  residual_score_scale: 0.9
+  residual_score_min: 0.9
+  point_filter_num: 70
+  nearest_points: 5
+  min_effective_features: 5
+  max_iterations: 5
+  pose_meas_attitude_only: true   # true=3维姿态  false=6维姿态+位置
+  pose_meas_inflate: 50.0
+  pose_meas_pos_std_floor_m: [0.20, 0.20, 0.20]
+  pose_meas_att_std_floor_deg: [0.30, 0.30, 0.50]
+  pose_meas_min_eigenvalue: 20.0
+
+# --- out：输出与可视化 ---
+out:
+  output_world_pcd: false
+  visualization_mode: 3   # 0:关  1:雷达系原始帧  2:雷达系去畸变帧  3:世界系累积

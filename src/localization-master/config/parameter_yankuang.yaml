@@ -1,0 +1,107 @@
+# 兖矿矿区：Shangyu GNSS + Shangyu Heading + Shangyu IMU
+# 当前输入为 20260806 record 解码产物
+# --- process_option ---
+process_option:
+  state_dim: 15
+  meas_dim: 2            # 1:pos  2:pos+vel  3:pos+vel+heading（建图关掉双天线航向）
+  max_process_duration_sec: 0.0  # <=0 处理完整数据
+
+# --- file ---
+file:
+  input_data_dir: "/home/zhouwang/dataset/debug0807"
+  output_data_dir: "/home/zhouwang/dataset/debug0807"
+
+# --- topics ---
+topics:
+  imu_topic: "/shangyu/imu/data_raw"
+  bestgnsspos_topic: "/shangyu/bestgnsspos"
+  bestvel_topic: "/shangyu/bestvel"
+  heading2_topic: "/shangyu/heading2"
+  lidar_topic: "/rslidar/em4_front/raw"
+
+# --- calibration ---
+calibration:
+  gloc_origin_lla_deg: [44.820514486, 89.008664293, 498.0873]  # lat,lon,h（本包首帧 GNSS）
+  R_bv: [0.0, -1.0, 0.0,
+         1.0,  0.0, 0.0,
+         0.0,  0.0, 1.0]
+  heading_offset_deg: 180.0
+  lidar_imu_extrinsic:
+    enable: false             # true：覆盖 calib.json 中的雷达外参
+    # p_imu = R_bl * p_lidar + T_lb_m；旋转矩阵行优先
+    R_bl: [-0.009999626035198318, -0.9999323741152193,  0.005937564774990955,
+            0.9999292712108317,   -0.010037477933234683, -0.006379781541301452,
+            0.006438948278336138,  0.005873349388624536,  0.9999620211348169]
+    T_lb_m: [0.9355, 1.2085, 0.521]
+  imu_calib:
+    gyro_bias_dps: [0.0, 0.0, 0.0]
+    acc_bias_mg: [0.0, 0.0, 0.0]
+    gyro_scale_factor: [1.0, 1.0, 1.0]
+    acc_scale_factor: [1.0, 1.0, 1.0]
+
+# --- statistics ---
+statistics:
+  init:
+    att_err_deg: [1.0, 1.0, 1.0]
+    vel_err_mps: [0.5, 0.5, 0.5]
+    pos_err_m: [0.5, 0.5, 0.5]
+    gyro_bias_err_dps: [1.0, 1.0, 1.0]
+    acc_bias_err_mg: [10.0, 10.0, 10.0]
+    lever_arm_err_m: [0.1, 0.1, 0.1]
+  process:
+    ang_random_walk: [2.5, 2.5, 2.0]
+    vel_random_walk: [408.0, 408.0, 408.0]
+    gyro_bias_noise: [108.0, 108.0, 108.0]
+    acc_bias_noise: [1050.0, 1050.0, 1050.0]
+    lever_random_walk: [2.0e-4, 2.0e-4, 5.0e-5]
+  meas:
+    gnss_fixed_pos_std_floor_m: [0.05, 0.05, 0.05]  # E,N,U
+    gnss_float_pos_std_floor_m: [0.5, 0.5, 0.5]
+    gnss_vel_meas_std_mps: [0.05, 0.05, 0.05]
+    heading_meas_std_floor_deg: 0.3
+    heading_meas_std_scale: 0.5
+
+# --- quality_control ---
+quality_control:
+  gnss_vel_min_speed_mps: 0.0
+  heading_meas_std_max_deg: 5.0
+  gnss_vel_u_only_hor_speed_mps: 0.0
+  max_no_valid_measure_sec: 10.0
+  zupt:
+    enable: true
+    meas_std_mps: [0.03, 0.03, 0.03]
+    static_hor_speed_mps: 0.03
+    static_ver_speed_mps: 0.03
+    static_ins_speed_mps: 0.10
+    static_ang_rate_dps: 1.0
+    min_duration_sec: 0.5
+
+# --- lidar ---
+lidar:
+  init_mode: 0
+  imu_init_samples: 100
+  enable_undistort: true
+  frame_voxel_size: 0.5
+  map_voxel_size: 0.5
+  det_range: 100.0
+  cube_len: 1000.0
+  iterated_update_noise_var: 0.001
+  iekf_convergence_threshold: 0.001
+  nearest_search_max_sq_dist: 5.0
+  plane_fit_threshold_m: 0.1
+  residual_score_scale: 0.9
+  residual_score_min: 0.9
+  point_filter_num: 70
+  nearest_points: 5
+  min_effective_features: 5
+  max_iterations: 5
+  pose_meas_attitude_only: true   # true=3维姿态  false=6维姿态+位置
+  pose_meas_inflate: 1.0  # 1=不放大；代码会 max(inflate,1)，不要写 0
+  pose_meas_pos_std_floor_m: [0.20, 0.20, 0.20]
+  pose_meas_att_std_floor_deg: [0.30, 0.30, 0.50]
+  pose_meas_min_eigenvalue: 20.0
+
+# --- out ---
+out:
+  output_world_pcd: false
+  visualization_mode: 3   # 0:关  1:雷达系原始帧  2:雷达系去畸变帧  3:世界系累积
